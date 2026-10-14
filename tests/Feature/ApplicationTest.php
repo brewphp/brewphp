@@ -12,7 +12,7 @@ use BrewPHP\Core\ImproperlyConfigured;
 use BrewPHP\Core\Settings;
 use BrewPHP\Http\Request;
 use BrewPHP\Routing\Router;
-use BrewPHP\Templates\PhpEngine;
+use BrewPHP\Templates\Templates;
 use BrewPHP\Tests\TestCase;
 
 final class PackagedApp extends AppConfig
@@ -53,7 +53,7 @@ final class ApplicationTest extends TestCase
         $app = $this->makeApp();
 
         self::assertSame($app->router(), $app->get(Router::class));
-        self::assertInstanceOf(PhpEngine::class, $app->templates());
+        self::assertInstanceOf(Templates::class, $app->templates());
         self::assertSame($app->settings(), $app->get(Settings::class));
         self::assertSame($app, app());
         self::assertTrue(settings('DEBUG'));

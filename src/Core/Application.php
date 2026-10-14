@@ -10,7 +10,9 @@ use BrewPHP\Db\ConnectionManager;
 use BrewPHP\Http\Request;
 use BrewPHP\Http\Response;
 use BrewPHP\Routing\Router;
+use BrewPHP\Templates\ContextProcessors;
 use BrewPHP\Templates\PhpEngine;
+use BrewPHP\Templates\Templates;
 
 /**
  * The application: the project's base path, settings, installed apps and
@@ -42,7 +44,15 @@ class Application extends Container
         $this->instance(Settings::class, $settings);
         $this->instance(Apps::class, $this->apps);
         $this->singleton(Router::class, fn (): Router => $this->loadRouter());
-        $this->singleton(PhpEngine::class, fn (): PhpEngine => new PhpEngine($this->templateDirectories()));
+        $this->singleton(Templates::class, fn (): Templates => new Templates(
+            $this->templateDirectories(),
+            $this->storagePath('templates'),
+            cache: (bool) $this->settings->get('TEMPLATES.CACHE', true),
+            strict: (bool) $this->settings->get('TEMPLATES.STRICT', false),
+            contextProcessors: $this->contextProcessors(),
+            staticUrl: $this->settings->string('STATIC_URL', '/static/'),
+        ));
+        $this->singleton(PhpEngine::class, fn (): PhpEngine => $this->templates()->php());
         $this->singleton(SystemChecks::class, fn (): SystemChecks => SystemChecks::withDefaults());
         $this->singleton(ConnectionManager::class, fn (): ConnectionManager => new ConnectionManager(
             $this->settings->array('DATABASES'),
@@ -148,9 +158,13 @@ class Application extends Container
         return $this->get(Router::class);
     }
 
-    public function templates(): PhpEngine
+    /**
+     * Templates: `.php` files render as plain PHP, every other extension
+     * with the template language.
+     */
+    public function templates(): Templates
     {
-        return $this->get(PhpEngine::class);
+        return $this->get(Templates::class);
     }
 
     /**
@@ -219,6 +233,38 @@ class Application extends Container
         $directories[] = $this->resourcePath('templates');
 
         return $directories;
+    }
+
+    /**
+     * TEMPLATES.CONTEXT_PROCESSORS as callables. An entry is a callable
+     * (`[ContextProcessors::class, 'request']`, a closure...) or the name
+     * of an invokable class, built by the container. Without the setting,
+     * only the `request` processor runs.
+     *
+     * @return list<callable(Request): array<string, mixed>>
+     */
+    private function contextProcessors(): array
+    {
+        $entries = $this->settings->has('TEMPLATES.CONTEXT_PROCESSORS')
+            ? $this->settings->array('TEMPLATES.CONTEXT_PROCESSORS')
+            : [[ContextProcessors::class, 'request']];
+
+        $processors = [];
+        foreach ($entries as $entry) {
+            if (is_string($entry) && !is_callable($entry) && class_exists($entry)) {
+                $entry = $this->make($entry);
+            }
+            if (!is_callable($entry)) {
+                throw new ImproperlyConfigured(sprintf(
+                    'TEMPLATES.CONTEXT_PROCESSORS entries must be callables or invokable classes, got %s.',
+                    is_string($entry) ? '"' . $entry . '"' : get_debug_type($entry),
+                ));
+            }
+            /** @var callable(Request): array<string, mixed> $entry */
+            $processors[] = $entry;
+        }
+
+        return $processors;
     }
 
     private function loadRouter(): Router

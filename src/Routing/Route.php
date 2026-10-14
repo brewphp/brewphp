@@ -125,7 +125,7 @@ final class Route
     /**
      * Build the URL path for this route, e.g. "/posts/5/".
      *
-     * @param array<string, mixed> $parameters
+     * @param array<string|int, mixed> $parameters named, or positional in pattern order
      * @param array<string, Converter> $converters
      */
     public function reverse(array $parameters, array $converters): string
@@ -139,6 +139,10 @@ final class Route
 
         preg_match_all('/\{(\w+)\}/', $this->template, $found);
         $expected = $found[1];
+        if ($parameters !== [] && array_is_list($parameters) && count($parameters) === count($expected)) {
+            // Positional values, in the order of the pattern (used by {% url %}).
+            $parameters = array_combine($expected, $parameters);
+        }
         $missing = array_diff($expected, array_keys($parameters));
         $unknown = array_diff(array_keys($parameters), $expected);
         if ($missing !== [] || $unknown !== []) {

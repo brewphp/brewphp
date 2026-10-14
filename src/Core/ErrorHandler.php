@@ -9,13 +9,14 @@ use BrewPHP\Http\JsonResponse;
 use BrewPHP\Http\Request;
 use BrewPHP\Http\Response;
 use BrewPHP\Routing\RouteNotFound;
+use BrewPHP\Templates\TemplateError;
 
 /**
  * Turns exceptions into error responses.
  *
  * With DEBUG on you get a detailed page (stack trace, request, settings).
- * With DEBUG off you get a plain page from the `404.php`, `403.php`,
- * `400.php` or `500.php` template, which a project overrides by creating a
+ * With DEBUG off you get a plain page from the `404.html` (or `404.php`), `403`,
+ * `400` or `500` template, which a project overrides by creating a
  * template with the same name; server errors are written to the PHP error
  * log. Requests that ask for JSON get a JSON error instead.
  */
@@ -48,7 +49,7 @@ final class ErrorHandler
             $response = match (true) {
                 $request->wantsJson() => $this->json($e, $status),
                 $this->app->isDebug() => new Response($this->debugPage($e, $request, $status), $status),
-                default => new Response($this->productionPage($e, $status), $status),
+                default => new Response($this->productionPage($e, $status, $request), $status),
             };
         } catch (\Throwable $renderError) {
             error_log('[BrewPHP] Error while rendering the error page: ' . $renderError);
@@ -153,15 +154,36 @@ final class ErrorHandler
         return new JsonResponse($data, $status);
     }
 
-    private function productionPage(\Throwable $e, int $status): string
+    private function productionPage(\Throwable $e, int $status, Request $request): string
     {
         $message = self::publicMessage($e, $status);
 
-        return $this->app->templates()->render([$status . '.php', 'brewphp/error.php'], [
+        return $this->app->templates()->render([$status . '.html', $status . '.php', 'brewphp/error.php'], [
             'status' => $status,
             'title' => self::TITLES[$status] ?? (Response::STATUS_TEXTS[$status] ?? 'Error'),
             'message' => $message,
-        ]);
+        ], $request);
+    }
+
+    /**
+     * Where a template error happened, with the source lines around it.
+     *
+     * @return array{name: string, line: int, file: string|null, code: array<int, string>}|null
+     */
+    private static function templateError(\Throwable $e): ?array
+    {
+        for ($current = $e; $current !== null; $current = $current->getPrevious()) {
+            if ($current instanceof TemplateError && $current->templateName !== null && $current->templateLine !== null) {
+                return [
+                    'name' => $current->templateName,
+                    'line' => $current->templateLine,
+                    'file' => $current->templateFile,
+                    'code' => $current->templateFile !== null ? self::excerpt($current->templateFile, $current->templateLine) : [],
+                ];
+            }
+        }
+
+        return null;
     }
 
     private function debugPage(\Throwable $e, Request $request, int $status): string
@@ -184,6 +206,7 @@ final class ErrorHandler
             'status' => $status,
             'exceptions' => $exceptions,
             'frames' => self::frames($e),
+            'template' => self::templateError($e),
             'request' => $request,
             'settings' => self::mask($this->app->settings()->all()),
             'server' => self::mask(array_filter($request->server(), 'is_scalar')),

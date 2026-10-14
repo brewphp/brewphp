@@ -24,6 +24,7 @@ use BrewPHP\Http\Response;
 use BrewPHP\Routing\Route;
 use BrewPHP\Routing\RouteGroup;
 use BrewPHP\Routing\Router;
+use BrewPHP\Templates\SafeString;
 
 // Application -----------------------------------------------------------------
 
@@ -270,14 +271,36 @@ if (!function_exists('redirect')) {
 
 if (!function_exists('render')) {
     /**
-     * Render a template into a response: `render('blog/post.php', ['post' => $post])`.
+     * Render a template into a response: `render('blog/post.html', ['post' => $post])`.
+     * During a request, the context processors add their variables
+     * (such as `request`) first.
      *
      * @param array<string, mixed> $context
      * @param array<string, string> $headers
      */
     function render(string $template, array $context = [], int $status = 200, array $headers = []): Response
     {
-        return new Response(Application::getInstance()->templates()->render($template, $context), $status, $headers);
+        return new Response(render_to_string($template, $context), $status, $headers);
+    }
+}
+
+if (!function_exists('render_to_string')) {
+    /**
+     * Render a template (or the first existing one of a list) to a string.
+     * The current request is used for the context processors unless you
+     * pass one.
+     *
+     * @param string|list<string> $template
+     * @param array<string, mixed> $context
+     */
+    function render_to_string(string|array $template, array $context = [], ?Request $request = null): string
+    {
+        $app = Application::getInstance();
+        if ($request === null && $app->has(Request::class)) {
+            $request = $app->get(Request::class);
+        }
+
+        return $app->templates()->render($template, $context, $request);
     }
 }
 
@@ -300,10 +323,14 @@ if (!function_exists('abort')) {
 
 if (!function_exists('e')) {
     /**
-     * Escape a value for HTML. Use it for everything you print in a PHP template.
+     * Escape a value for HTML. Use it for everything you print in a PHP
+     * template. A SafeString is already safe and is returned unchanged.
      */
     function e(mixed $value): string
     {
+        if ($value instanceof SafeString) {
+            return (string) $value;
+        }
         if ($value instanceof BackedEnum) {
             $value = $value->value;
         }
@@ -315,5 +342,16 @@ if (!function_exists('e')) {
         }
 
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+if (!function_exists('mark_safe')) {
+    /**
+     * Mark HTML as safe so templates print it without escaping. Only use
+     * it for HTML you built or escaped yourself.
+     */
+    function mark_safe(string $html): SafeString
+    {
+        return new SafeString($html);
     }
 }

@@ -3,14 +3,16 @@
 A small, Django-inspired PHP framework: easy to learn, a readable core, and
 zero runtime dependencies.
 
-BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, `manage.php`,
-and later migrations and an automatic admin) to modern PHP 8.2+.
+BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
+`manage.php`, and later migrations and an automatic admin) to modern PHP 8.2+.
 
 > **Status:** early development. Version 0.1 provides the foundation:
 > routing, views, requests and responses, settings, middleware, error pages
 > and the `manage.php` command line. Version 0.2 adds the ORM: models,
 > fields, relations, QuerySets and a schema editor for SQLite, MySQL and
-> PostgreSQL. See the [roadmap](#roadmap).
+> PostgreSQL. Version 0.3 adds the Django-like template language, compiled
+> to PHP, with inheritance, auto-escaping and custom tags and filters. See
+> the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -76,6 +78,21 @@ $posts = Post::objects()
     ->paginate(10, $request->query('page'));
 
 $post = get_object_or_404(Post::class, id: $id);
+
+return render('blog/post_list.html', ['posts' => $posts]);
+```
+
+```html+django
+{% extends "base.html" %}
+
+{% block content %}
+    {% for post in posts %}
+        <h2><a href="{% url 'blog:post-detail' post.id %}">{{ post.title }}</a></h2>
+        <p>{{ post.author.name }} · {{ post.created_at|date:"M j, Y" }}</p>
+    {% empty %}
+        <p>No posts yet.</p>
+    {% endfor %}
+{% endblock %}
 ```
 
 ```bash
@@ -93,7 +110,7 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 |---|---|---|
 | 0.1 | Router, views, request/response, settings, CLI | Done |
 | 0.2 | ORM (SQLite, MySQL, PostgreSQL) | Done |
-| 0.3 | Templates | Planned |
+| 0.3 | Templates | Done |
 | 0.4 | Migrations, `startapp` | Planned |
 | 0.5 | Auth, sessions, CSRF, forms | Planned |
 | 0.6 | Automatic admin | Planned |

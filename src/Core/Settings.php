@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BrewPHP\Core;
 
 use BrewPHP\Support\Arr;
+use BrewPHP\Templates\ContextProcessors;
 
 /**
  * Project settings: the framework defaults merged with `config/settings.php`.
@@ -57,7 +58,12 @@ final class Settings
             'MIDDLEWARE' => [],
             'ROOT_URLCONF' => 'config/urls.php',
             'APPEND_SLASH' => true,
-            'TEMPLATES' => ['DIRS' => ['templates']],
+            'TEMPLATES' => [
+                'DIRS' => ['templates'],
+                'CACHE' => true,
+                'STRICT' => false,
+                'CONTEXT_PROCESSORS' => [[ContextProcessors::class, 'request']],
+            ],
             'APP_URL' => 'http://localhost',
             'TIME_ZONE' => 'UTC',
             'LANGUAGE' => 'en',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BrewPHP\Db;
 
+use BrewPHP\Core\AltersData;
 use BrewPHP\Core\Application;
 use BrewPHP\Core\ValidationError;
 use BrewPHP\Db\Fields\Field;
@@ -209,6 +210,7 @@ abstract class Model implements \JsonSerializable
     /**
      * Insert the object (when new) or update its row.
      */
+    #[AltersData]
     public function save(): void
     {
         $meta = static::meta();
@@ -252,6 +254,7 @@ abstract class Model implements \JsonSerializable
      * the objects that point to it. Returns how many rows were deleted
      * (including cascades).
      */
+    #[AltersData]
     public function delete(): int
     {
         if (!$this->persisted || $this->pk === null) {
@@ -266,6 +269,7 @@ abstract class Model implements \JsonSerializable
     /**
      * Reload the field values from the database.
      */
+    #[AltersData]
     public function refresh(): void
     {
         $fresh = static::objects()->get(pk: $this->pk);
@@ -284,21 +288,25 @@ abstract class Model implements \JsonSerializable
     // Hooks -------------------------------------------------------------------
 
     /** Called before every save. */
+    #[AltersData]
     public function beforeSave(): void
     {
     }
 
     /** Called after every save; `$created` is true for an INSERT. */
+    #[AltersData]
     public function afterSave(bool $created): void
     {
     }
 
     /** Called before the object is deleted (also for cascades and QuerySet::delete()). */
+    #[AltersData]
     public function beforeDelete(): void
     {
     }
 
     /** Called after the object is deleted. */
+    #[AltersData]
     public function afterDelete(): void
     {
     }
@@ -312,6 +320,7 @@ abstract class Model implements \JsonSerializable
      *
      * @param list<string> $exclude field names to skip
      */
+    #[AltersData]
     public function fullClean(array $exclude = [], bool $validateUnique = true): void
     {
         $errors = [];
@@ -366,6 +375,7 @@ abstract class Model implements \JsonSerializable
     /**
      * Set a raw value by attribute name.
      */
+    #[AltersData]
     public function setAttribute(string $attname, mixed $value): void
     {
         $this->attributes[$attname] = $value;
@@ -427,6 +437,7 @@ abstract class Model implements \JsonSerializable
      *
      * @internal used by Collector
      */
+    #[AltersData]
     public function markDeleted(): void
     {
         $this->attributes[static::meta()->pk->attname] = null;
@@ -438,6 +449,7 @@ abstract class Model implements \JsonSerializable
      *
      * @internal
      */
+    #[AltersData]
     public function setRelatedCache(string $field, ?Model $object): void
     {
         $this->relatedCache[$field] = $object;

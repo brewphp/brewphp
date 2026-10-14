@@ -111,7 +111,7 @@ final class Router
      * Build the path for a named route: `reverse('blog:post-detail', ['id' => 5])`
      * gives "/blog/posts/5/".
      *
-     * @param array<string, mixed> $parameters
+     * @param array<string|int, mixed> $parameters named, or positional in pattern order
      * @param array<string, mixed> $query appended as a query string
      */
     public function reverse(string $name, array $parameters = [], array $query = []): string

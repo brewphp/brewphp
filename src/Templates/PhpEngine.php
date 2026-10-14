@@ -15,6 +15,9 @@ namespace BrewPHP\Templates;
  * Context values become local variables. Escape output with `e()`:
  *
  *     <h1><?= e($title) ?></h1>
+ *
+ * Projects usually go through the Templates facade, which uses this engine
+ * for `.php` files and the template language for every other extension.
  */
 final class PhpEngine
 {
@@ -73,6 +76,16 @@ final class PhpEngine
         }
 
         throw new TemplateNotFound(implode(', ', $names), $this->directories);
+    }
+
+    /**
+     * Render a template file that was already found.
+     *
+     * @param array<string, mixed> $context
+     */
+    public function renderFile(string $file, array $context = []): string
+    {
+        return self::evaluate($file, $context);
     }
 
     private function locate(string $name): ?string

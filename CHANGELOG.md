@@ -8,6 +8,57 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Template language:** a Django-like template engine (`BrewPHP\Templates`)
+  for every template whose extension is not `.php`: variables with dotted
+  lookups (array keys, properties, `__get`, zero-argument methods with
+  snake_case to camelCase, model fields and relations, list indexes),
+  filters with arguments, tags, comments, template inheritance with
+  `{% extends %}`, `{% block %}` and `{{ block.super }}` (including a
+  project template extending the template it overrides), and
+  `{% include %}` with `with` and `only`. Templates are compiled to PHP in
+  `storage/templates/` and compiled again when their source changes.
+- **Template tags:** `if`/`elif`/`else` (`and`, `or`, `not`, `==`, `!=`,
+  `<`, `>`, `<=`, `>=`, `in`, `not in`, `is`, `is not`, parentheses),
+  `for`/`empty` (with `forloop`, `reversed` and unpacking), `extends`,
+  `block`, `include`, `with`, `url`, `static`, `now`, `cycle`, `firstof`,
+  `spaceless`, `verbatim`, `autoescape`, `filter`, `comment`, `load` (a
+  no-op) and `csrf_token`.
+- **Template filters:** `add`, `capfirst`, `cut`, `date`, `default`,
+  `default_if_none`, `dictsort`, `dictsortreversed`, `divisibleby`,
+  `escape`, `first`, `floatformat`, `join`, `json_script`, `last`,
+  `length`, `linebreaks`, `linebreaksbr`, `lower`, `pluralize`, `safe`,
+  `slice`, `slugify`, `striptags`, `time`, `timesince`, `title`,
+  `truncatechars`, `truncatewords`, `upper`, `urlencode`, `wordcount` and
+  `yesno`.
+- **Template security:** automatic HTML escaping, `SafeString` and the
+  `mark_safe()` helper (`e()` leaves a `SafeString` unchanged); template
+  text, literals and names never become PHP code; `json_script` encodes
+  `<`, `>` and `&`; the `#[AltersData]` attribute (`BrewPHP\Core\AltersData`)
+  keeps templates from calling `save()`, `delete()` and the other
+  data-changing methods of models and QuerySets.
+- **Template extensions:** `Library` with `filter()` (`isSafe`,
+  `needsAutoescape`), `simpleTag()` (`takesContext`, `as name`) and `tag()`
+  for compiled tags, registered from `AppConfig::ready()` with
+  `$app->templates()->library()`; context processors in
+  `TEMPLATES.CONTEXT_PROCESSORS` (callables or invokable classes) with the
+  built-in `ContextProcessors::request`.
+- **Templates facade:** `Templates` (`app()->templates()`) picks the
+  engine by extension for `render()`, `render(list)`, `renderString()`,
+  `exists()` and `find()`; `render()` runs the context processors during a
+  request; new `render_to_string()` helper.
+- **Template errors:** `TemplateSyntaxError`, `TemplateError` and
+  `VariableDoesNotExist` report the template name and line; errors raised
+  while rendering are wrapped with the template location (HTTP exceptions
+  pass through) and the debug page shows the template source around the
+  failing line.
+- **Settings:** `TEMPLATES.CACHE`, `TEMPLATES.STRICT` and
+  `TEMPLATES.CONTEXT_PROCESSORS`.
+- **Error pages:** production error pages can be template-language files
+  (`404.html` before `404.php`) and receive the context processors'
+  variables.
+- **Routing:** `reverse()` also accepts positional parameters in pattern
+  order (used by `{% url %}`).
+
 - **Database:** `DATABASES` setting (SQLite by default in
   `storage/db.sqlite3`, MySQL/MariaDB and PostgreSQL), lazy PDO
   `Connection` with typed bindings, `select()`, `selectOne()`, `scalar()`,
@@ -90,7 +141,7 @@ project follows [Semantic Versioning](https://semver.org/).
   pages `400.php`/`403.php`/`404.php`/`500.php` overridable by projects, JSON
   errors for API clients, and server errors written to the PHP error log.
 - **Templates:** plain PHP template rendering (`render()`, `e()`) searched in
-  project, app and framework folders. The Django-like engine is planned for 0.3.
+  project, app and framework folders.
 - **CLI:** `manage.php` runner with colours, `--help`, `--no-interaction`,
   exit codes and command discovery from `apps/<app>/Commands/`; commands
   `serve`/`runserver`, `routes`, `about`, `check` (with `--deploy`),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BrewPHP\Db;
 
+use BrewPHP\Core\AltersData;
 use BrewPHP\Pagination\Page;
 use BrewPHP\Pagination\Paginator;
 
@@ -548,6 +549,7 @@ final class QuerySet implements \IteratorAggregate, \Countable
      * @param array<string, mixed> $attributes
      * @return TModel
      */
+    #[AltersData]
     public function create(array $attributes = []): Model
     {
         $model = $this->model;
@@ -565,6 +567,7 @@ final class QuerySet implements \IteratorAggregate, \Countable
      * @param array<string, mixed> $defaults
      * @return array{0: TModel, 1: bool}
      */
+    #[AltersData]
     public function getOrCreate(array $lookup, array $defaults = []): array
     {
         try {
@@ -592,6 +595,7 @@ final class QuerySet implements \IteratorAggregate, \Countable
      * @param array<string, mixed> $defaults
      * @return array{0: TModel, 1: bool}
      */
+    #[AltersData]
     public function updateOrCreate(array $lookup, array $defaults = []): array
     {
         return $this->model::connection()->transaction(function () use ($lookup, $defaults): array {
@@ -617,6 +621,7 @@ final class QuerySet implements \IteratorAggregate, \Countable
      *
      * @param array<string, mixed> $values
      */
+    #[AltersData]
     public function update(array $values): int
     {
         $this->assertNotSliced('update');
@@ -634,6 +639,7 @@ final class QuerySet implements \IteratorAggregate, \Countable
      * Delete every matching object, applying the onDelete rule of foreign
      * keys and calling the model hooks. Returns the number of rows deleted.
      */
+    #[AltersData]
     public function delete(): int
     {
         $this->assertNotSliced('delete');
