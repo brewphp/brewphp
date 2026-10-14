@@ -8,6 +8,60 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Database:** `DATABASES` setting (SQLite by default in
+  `storage/db.sqlite3`, MySQL/MariaDB and PostgreSQL), lazy PDO
+  `Connection` with typed bindings, `select()`, `selectOne()`, `scalar()`,
+  `statement()`, `insert()`, nested `transaction()` with savepoints and a
+  query log while `DEBUG` is on; `ConnectionManager` for named connections;
+  the `db()` helper; `QueryException` and `IntegrityError`.
+- **Grammars:** `SqliteGrammar`, `MysqlGrammar` and `PostgresGrammar` for
+  identifier quoting, column types, LIMIT/OFFSET, LIKE, date parts and
+  INSERT ... RETURNING.
+- **Models:** `Model` base class with `fields()`, an implicit `id`
+  primary key, `table()`, `ordering()`, `indexes()`, verbose names,
+  attribute access to field values, `save()`, `delete()`, `refresh()`,
+  `create()`, `toArray()`, JSON serialisation, the hooks `beforeSave()`,
+  `afterSave()`, `beforeDelete()` and `afterDelete()`, `fullClean()` and
+  `clean()` validation (fields, validators, unique fields and unique
+  indexes), and `meta()` (`ModelMeta`).
+- **Fields:** `AutoField`, `BigAutoField`, `CharField`, `TextField`,
+  `SlugField`, `EmailField`, `URLField`, `IntegerField`, `BigIntegerField`,
+  `PositiveIntegerField`, `FloatField`, `DecimalField`, `BooleanField`,
+  `DateField`, `DateTimeField`, `TimeField`, `JsonField`, `UUIDField`,
+  `ForeignKey` and `OneToOneField`, with the common options (`null`,
+  `blank`, `default`, `unique`, `dbIndex`, `choices` including backed enums,
+  `verboseName`, `helpText`, `editable`, `primaryKey`, `dbColumn`,
+  `validators`) and `deconstruct()` for migrations.
+- **Relations:** forward and reverse accessors (`$post->author`,
+  `$author->posts`, `related()`), `OnDelete` rules (`Cascade`, `Protect`,
+  `Restrict`, `SetNull`, `SetDefault`, `DoNothing`) applied in PHP with
+  model hooks, and `ProtectedError`.
+- **QuerySets:** lazy, immutable and cached; `filter()`, `exclude()`,
+  `where()` with `Q` objects (`Q::or()`, `Q::and()`, `Q::not()`), Django
+  lookups (`exact`, `iexact`, `contains`, `icontains`, `startswith`,
+  `istartswith`, `endswith`, `iendswith`, `gt`, `gte`, `lt`, `lte`, `in`
+  with lists or QuerySets, `range`, `isnull`, `year`, `month`, `day`),
+  JOINs across foreign keys in both directions at any depth, `F`
+  expressions, `orderBy()`, `reverse()`, `limit()`, `offset()`, `slice()`,
+  `distinct()`, `get()`, `first()`, `last()`, `count()`, `exists()`,
+  `values()`, `valuesList()`, `inBulk()`, `aggregate()` with `Count`,
+  `Sum`, `Avg`, `Min` and `Max`, `selectRelated()`, `update()`, `delete()`,
+  `create()`, `getOrCreate()`, `updateOrCreate()`, `none()`, `paginate()`,
+  `raw()` and `toSql()`; `ObjectDoesNotExist`, `MultipleObjectsReturned`
+  and the `get_object_or_404()` helper.
+- **Schema editor:** `createModel()`, `deleteModel()`, `renameModel()`,
+  `addField()`, `removeField()`, `alterField()`, `renameField()`,
+  `addIndex()` and `removeIndex()` for each engine, with SQLite table
+  rebuilds and a collect-only mode for printing SQL.
+- **Registry:** models are discovered from each app's `models.php` and
+  `Models/` folder (`AppConfig::modelsPath()`) and listed by
+  `Registry::models()`.
+- **Pagination:** `Paginator` and `Page` for QuerySets and arrays, with
+  orphans, a forgiving `getPage()` and `elidedPageRange()`.
+- **Validation:** `BrewPHP\Core\ValidationError` with messages per field,
+  shared by models and (later) forms.
+- **CLI:** `about` shows the database engine; `check` validates the
+  `DATABASES` setting (`db.E001` to `db.E003`).
 - **Core:** `Application` (base path, settings, apps, container), `Kernel`
   request cycle, a small autowiring `Container`, `Settings` with framework
   defaults and dot access, and a `.env` loader (`Env`, `env()`).

@@ -3,12 +3,14 @@
 A small, Django-inspired PHP framework: easy to learn, a readable core, and
 zero runtime dependencies.
 
-BrewPHP brings Django's ideas (apps, URLconfs, views, `manage.php`, and later
-an ORM, migrations and an automatic admin) to modern PHP 8.2+.
+BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, `manage.php`,
+and later migrations and an automatic admin) to modern PHP 8.2+.
 
 > **Status:** early development. Version 0.1 provides the foundation:
 > routing, views, requests and responses, settings, middleware, error pages
-> and the `manage.php` command line. See the [roadmap](#roadmap).
+> and the `manage.php` command line. Version 0.2 adds the ORM: models,
+> fields, relations, QuerySets and a schema editor for SQLite, MySQL and
+> PostgreSQL. See the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -43,6 +45,39 @@ return [
 reverse('post-detail', ['id' => 5]); // "/posts/5/"
 ```
 
+```php
+<?php
+// apps/blog/models.php
+
+declare(strict_types=1);
+
+namespace Apps\Blog;
+
+use BrewPHP\Db\Fields\CharField;
+use BrewPHP\Db\Fields\ForeignKey;
+use BrewPHP\Db\Model;
+
+final class Post extends Model
+{
+    public static function fields(): array
+    {
+        return [
+            'title' => new CharField(maxLength: 200),
+            'author' => new ForeignKey(Author::class, relatedName: 'posts'),
+        ];
+    }
+}
+```
+
+```php
+$posts = Post::objects()
+    ->filter(title__icontains: 'php', author__name: 'Ann')
+    ->orderBy('-id')
+    ->paginate(10, $request->query('page'));
+
+$post = get_object_or_404(Post::class, id: $id);
+```
+
 ```bash
 php manage.php routes   # list every URL pattern
 php manage.php check    # look for configuration problems
@@ -54,14 +89,14 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 
 ## Roadmap
 
-| Version | Scope |
-|---|---|
-| 0.1 | Router, views, request/response, settings, CLI |
-| 0.2 | ORM (SQLite, MySQL, PostgreSQL) |
-| 0.3 | Templates |
-| 0.4 | Migrations, `startapp` |
-| 0.5 | Auth, sessions, CSRF, forms |
-| 0.6 | Automatic admin |
+| Version | Scope | Status |
+|---|---|---|
+| 0.1 | Router, views, request/response, settings, CLI | Done |
+| 0.2 | ORM (SQLite, MySQL, PostgreSQL) | Done |
+| 0.3 | Templates | Planned |
+| 0.4 | Migrations, `startapp` | Planned |
+| 0.5 | Auth, sessions, CSRF, forms | Planned |
+| 0.6 | Automatic admin | Planned |
 
 ## Contributing
 

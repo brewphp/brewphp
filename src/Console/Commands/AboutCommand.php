@@ -6,6 +6,8 @@ namespace BrewPHP\Console\Commands;
 
 use BrewPHP\Console\Command;
 use BrewPHP\Core\Application;
+use BrewPHP\Core\ImproperlyConfigured;
+use BrewPHP\Db\Connection;
 
 final class AboutCommand extends Command
 {
@@ -31,6 +33,7 @@ final class AboutCommand extends Command
                 'Time zone' => $settings->string('TIME_ZONE'),
                 'Language' => $settings->string('LANGUAGE'),
                 'URLconf' => $settings->string('ROOT_URLCONF'),
+                'Database' => $this->database(),
             ],
             'Installed apps' => [],
             'Extensions' => [
@@ -59,5 +62,24 @@ final class AboutCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * "sqlite (storage/db.sqlite3)"; does not connect.
+     */
+    private function database(): string
+    {
+        $config = $this->app->settings()->get('DATABASES.default');
+        if (!is_array($config)) {
+            return 'not configured';
+        }
+        try {
+            $engine = Connection::engineOf($config);
+        } catch (ImproperlyConfigured $e) {
+            return 'invalid: ' . $e->getMessage();
+        }
+        $name = $config['NAME'] ?? '';
+
+        return $engine . (is_string($name) && $name !== '' ? ' (' . $name . ')' : '');
     }
 }

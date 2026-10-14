@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 use BrewPHP\Core\Application;
 use BrewPHP\Core\Env;
+use BrewPHP\Db\Connection;
+use BrewPHP\Db\Model;
+use BrewPHP\Db\ObjectDoesNotExist;
+use BrewPHP\Db\QuerySet;
 use BrewPHP\Http\BadRequest;
 use BrewPHP\Http\Http404;
 use BrewPHP\Http\HttpException;
@@ -67,6 +71,39 @@ if (!function_exists('storage_path')) {
     function storage_path(string ...$parts): string
     {
         return Application::getInstance()->storagePath(...$parts);
+    }
+}
+
+// Database --------------------------------------------------------------------
+
+if (!function_exists('db')) {
+    /**
+     * A database connection: `db()->select('SELECT ...')`, `db('legacy')`.
+     */
+    function db(?string $name = null): Connection
+    {
+        return Application::getInstance()->db($name);
+    }
+}
+
+if (!function_exists('get_object_or_404')) {
+    /**
+     * The object matching the lookups, or a 404 page:
+     * `get_object_or_404(Post::class, id: 5)`. Also accepts a QuerySet:
+     * `get_object_or_404(Post::objects()->filter(published: true), slug: $slug)`.
+     *
+     * @template T of Model
+     * @param class-string<T>|QuerySet<T> $model
+     * @return T
+     */
+    function get_object_or_404(string|QuerySet $model, mixed ...$lookups): Model
+    {
+        $query = is_string($model) ? $model::objects() : $model;
+        try {
+            return $query->get(...$lookups);
+        } catch (ObjectDoesNotExist) {
+            throw new Http404(sprintf('No %s matches the given query.', $query->model::meta()->modelName));
+        }
     }
 }
 

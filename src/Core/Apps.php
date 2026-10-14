@@ -71,7 +71,9 @@ final class Apps implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Load each app's single-file modules, then call every `ready()` hook.
+     * Load each app's single-file modules and the classes in its `Models/`
+     * folder (so every model is known to the registry), then call every
+     * `ready()` hook.
      */
     public function boot(Application $application): void
     {
@@ -81,6 +83,10 @@ final class Apps implements \IteratorAggregate, \Countable
                 if (is_file($file)) {
                     require_once $file;
                 }
+            }
+            foreach (glob($app->modelsPath() . DIRECTORY_SEPARATOR . '*.php') ?: [] as $file) {
+                // Through the autoloader, so a class is never declared twice.
+                class_exists($app->namespace . '\\Models\\' . basename($file, '.php'));
             }
         }
         foreach ($this->apps as $app) {

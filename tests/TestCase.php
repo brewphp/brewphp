@@ -63,9 +63,10 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * A writable copy of the fixture project. The demo app's views.php is
-     * left out: its functions are already declared by the original fixture
-     * and PHP cannot declare them twice in one process.
+     * A writable copy of the fixture project. The demo app's views.php and
+     * models.php are left out: their functions and classes are already
+     * declared by the original fixture and PHP cannot declare them twice in
+     * one process.
      */
     protected function copyProject(): string
     {
@@ -86,7 +87,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             $path = $target . DIRECTORY_SEPARATOR . substr($item->getPathname(), strlen($source) + 1);
             if ($item->isDir()) {
                 @mkdir($path, 0777, true);
-            } elseif ($item->getFilename() !== 'views.php') {
+            } elseif (!in_array($item->getFilename(), ['views.php', 'models.php'], true)) {
                 copy($item->getPathname(), $path);
             }
         }

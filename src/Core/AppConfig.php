@@ -55,6 +55,15 @@ class AppConfig
         return $this->path . DIRECTORY_SEPARATOR . 'templates';
     }
 
+    /**
+     * The folder of one-class-per-file models (`Models/Post.php` holds
+     * `Apps\Blog\Models\Post`). Its classes are loaded at boot, like `models.php`.
+     */
+    public function modelsPath(): string
+    {
+        return $this->path . DIRECTORY_SEPARATOR . 'Models';
+    }
+
     public function commandsPath(): string
     {
         return $this->path . DIRECTORY_SEPARATOR . 'Commands';

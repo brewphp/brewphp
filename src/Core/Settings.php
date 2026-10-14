@@ -65,6 +65,12 @@ final class Settings
             'MEDIA_URL' => '/media/',
             'STORAGE_PATH' => 'storage',
             'COMMANDS' => [],
+            'DATABASES' => [
+                'default' => [
+                    'ENGINE' => 'sqlite',
+                    'NAME' => 'storage/db.sqlite3',
+                ],
+            ],
             'SECURE_CONTENT_TYPE_NOSNIFF' => true,
             'SECURE_FRAME_OPTIONS' => 'DENY',
             'SECURE_REFERRER_POLICY' => 'same-origin',

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace BrewPHP\Core;
 
 use BrewPHP\Console\Runner;
+use BrewPHP\Db\Connection;
+use BrewPHP\Db\ConnectionManager;
 use BrewPHP\Http\Request;
 use BrewPHP\Http\Response;
 use BrewPHP\Routing\Router;
@@ -42,6 +44,11 @@ class Application extends Container
         $this->singleton(Router::class, fn (): Router => $this->loadRouter());
         $this->singleton(PhpEngine::class, fn (): PhpEngine => new PhpEngine($this->templateDirectories()));
         $this->singleton(SystemChecks::class, fn (): SystemChecks => SystemChecks::withDefaults());
+        $this->singleton(ConnectionManager::class, fn (): ConnectionManager => new ConnectionManager(
+            $this->settings->array('DATABASES'),
+            $this->basePath,
+            $this->settings->bool('DEBUG'),
+        ));
 
         self::setInstance($this);
     }
@@ -144,6 +151,14 @@ class Application extends Container
     public function templates(): PhpEngine
     {
         return $this->get(PhpEngine::class);
+    }
+
+    /**
+     * A database connection from the DATABASES setting ("default" when no name is given).
+     */
+    public function db(?string $name = null): Connection
+    {
+        return $this->get(ConnectionManager::class)->connection($name);
     }
 
     public function isDebug(): bool

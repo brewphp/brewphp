@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BrewPHP\Core;
 
+use BrewPHP\Db\Connection;
 use BrewPHP\Routing\Router;
 
 /**
@@ -29,6 +30,7 @@ final class SystemChecks
         $checks->register(self::checkStorage(...));
         $checks->register(self::checkUrls(...));
         $checks->register(self::checkTemplates(...));
+        $checks->register(self::checkDatabases(...));
         $checks->register(self::checkDeploy(...), deploy: true);
 
         return $checks;
@@ -128,6 +130,45 @@ final class SystemChecks
         foreach ($app->settings()->array('TEMPLATES.DIRS') as $directory) {
             if (is_string($directory) && !is_dir($app->resolvePath($directory))) {
                 $messages[] = CheckMessage::warning('templates.W001', sprintf('The template folder "%s" in TEMPLATES DIRS does not exist.', $directory));
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Each DATABASES entry has a known ENGINE whose PDO driver is installed.
+     * Nothing connects to the database.
+     *
+     * @return list<CheckMessage>
+     */
+    private static function checkDatabases(Application $app): array
+    {
+        $databases = $app->settings()->array('DATABASES');
+        $messages = [];
+        if (!isset($databases['default'])) {
+            $messages[] = CheckMessage::error('db.E001', 'DATABASES has no "default" connection.', 'Models use the "default" database. Add it to DATABASES.');
+        }
+        foreach ($databases as $name => $config) {
+            if (!is_array($config)) {
+                $messages[] = CheckMessage::error('db.E002', sprintf('DATABASES["%s"] must be an array.', $name));
+
+                continue;
+            }
+            try {
+                /** @var array<string, mixed> $config */
+                $engine = Connection::engineOf($config);
+            } catch (ImproperlyConfigured $e) {
+                $messages[] = CheckMessage::error('db.E002', sprintf('DATABASES["%s"]: %s', $name, $e->getMessage()));
+
+                continue;
+            }
+            if (!in_array($engine, \PDO::getAvailableDrivers(), true)) {
+                $messages[] = CheckMessage::error(
+                    'db.E003',
+                    sprintf('DATABASES["%s"] uses %s, but the PDO driver is not installed.', $name, $engine),
+                    sprintf('Enable the pdo_%s PHP extension.', $engine),
+                );
             }
         }
 
