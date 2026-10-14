@@ -193,7 +193,7 @@ final class ConsoleTest extends TestCase
 
         [$code, $out] = $this->runCommand(['make:command', 'send_report'], app: $app);
         self::assertSame(0, $code, $out);
-        self::assertStringContainsString('Created apps', $out);
+        self::assertStringContainsString('Created apps/demo/Commands/SendReportCommand.php', $out);
         self::assertStringContainsString('php manage.php send-report', $out);
 
         $file = $project . '/apps/demo/Commands/SendReportCommand.php';
@@ -210,7 +210,7 @@ final class ConsoleTest extends TestCase
 
         [$code, $out] = $this->runCommand(['make:command', 'SendReportCommand'], app: $app);
         self::assertSame(1, $code);
-        self::assertStringContainsString('already exists', $out);
+        self::assertStringContainsString('apps/demo/Commands/SendReportCommand.php already exists', $out);
 
         [$code] = $this->runCommand(['make:command', 'Other', '--command=reports:send', '--app=demo', '--force'], app: $app);
         self::assertSame(0, $code);

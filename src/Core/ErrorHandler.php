@@ -122,9 +122,24 @@ final class ErrorHandler
         });
     }
 
+    /**
+     * The message that is safe to show without DEBUG: the text of a 4xx
+     * HttpException raised on purpose. Router internals and server errors
+     * are never shown.
+     */
+    private static function publicMessage(\Throwable $e, int $status): string
+    {
+        if (!$e instanceof HttpException || $e instanceof RouteNotFound || $status >= 500) {
+            return '';
+        }
+
+        return $e->getMessage();
+    }
+
     private function json(\Throwable $e, int $status): JsonResponse
     {
-        $data = ['error' => $e instanceof HttpException && $e->getMessage() !== '' ? $e->getMessage() : (self::TITLES[$status] ?? 'Error'), 'status' => $status];
+        $message = self::publicMessage($e, $status);
+        $data = ['error' => $message !== '' ? $message : (self::TITLES[$status] ?? 'Error'), 'status' => $status];
         if ($this->app->isDebug()) {
             $data['exception'] = [
                 'class' => $e::class,
@@ -140,7 +155,7 @@ final class ErrorHandler
 
     private function productionPage(\Throwable $e, int $status): string
     {
-        $message = $e instanceof HttpException && $status < 500 ? $e->getMessage() : '';
+        $message = self::publicMessage($e, $status);
 
         return $this->app->templates()->render([$status . '.php', 'brewphp/error.php'], [
             'status' => $status,

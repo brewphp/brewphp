@@ -52,6 +52,7 @@ final class ErrorPagesTest extends TestCase
         self::assertSame(404, $missing->status());
         self::assertStringContainsString('Page not found', $missing->content());
         self::assertStringNotContainsString('tried these URL patterns', $missing->content());
+        self::assertStringNotContainsString('No route matches', $missing->content());
 
         $forbidden = $this->request('GET', '/forbidden/', settings: self::PRODUCTION);
         self::assertSame(403, $forbidden->status());
@@ -75,7 +76,7 @@ final class ErrorPagesTest extends TestCase
 
         $missing = $this->request('GET', '/missing/', server: $server, settings: self::PRODUCTION);
         self::assertSame(404, $missing->status());
-        self::assertSame('{"error":"No route matches \"/missing/\".","status":404}', $missing->content());
+        self::assertSame('{"error":"Page not found","status":404}', $missing->content());
 
         $boom = $this->request('GET', '/boom/', server: $server, settings: self::PRODUCTION);
         self::assertSame('{"error":"Server error","status":500}', $boom->content());

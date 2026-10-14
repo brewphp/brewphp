@@ -50,7 +50,7 @@ final class MakeCommandCommand extends Command
         ], (bool) $this->option('force'));
 
         if (!$written) {
-            $this->error(sprintf('%s already exists. Use --force to overwrite it.', $file));
+            $this->error(sprintf('%s already exists. Use --force to overwrite it.', $this->relative($file)));
 
             return self::FAILURE;
         }
@@ -96,6 +96,8 @@ final class MakeCommandCommand extends Command
     {
         $base = $this->app->basePath() . DIRECTORY_SEPARATOR;
 
-        return str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
+        $relative = str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
+
+        return str_replace(DIRECTORY_SEPARATOR, '/', $relative);
     }
 }
