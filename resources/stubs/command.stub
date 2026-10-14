@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use BrewPHP\Console\Command;
+
+final class {{ class }} extends Command
+{
+    public string $name = '{{ command }}';
+
+    public string $description = 'Describe what this command does';
+
+    protected function configure(): void
+    {
+        // $this->addArgument('name', 'Description of the argument', required: true);
+        // $this->addOption('dry-run', 'Description of the flag');
+    }
+
+    public function handle(): int
+    {
+        $this->info('{{ command }} ran.');
+
+        return self::SUCCESS;
+    }
+}

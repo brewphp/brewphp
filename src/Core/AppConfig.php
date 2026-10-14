@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BrewPHP\Core;
+
+/**
+ * Describes one installed app, like Django's `AppConfig`.
+ *
+ * A project app lives in `apps/<label>/` and its classes use the
+ * `Apps\<Label>` namespace. Put an `App.php` in the folder to customise it:
+ *
+ *     namespace Apps\Blog;
+ *
+ *     final class App extends \BrewPHP\Core\AppConfig
+ *     {
+ *         public string $verboseName = 'Blog';
+ *     }
+ */
+class AppConfig
+{
+    /** Dotted name, e.g. "apps.blog" or "brewphp.admin". */
+    public string $name = '';
+
+    /** Short unique name, e.g. "blog". */
+    public string $label = '';
+
+    /** Human-readable name, e.g. "Blog". */
+    public string $verboseName = '';
+
+    /** Absolute path of the app folder. */
+    public string $path = '';
+
+    /** PHP namespace of the app's classes, e.g. "Apps\Blog". */
+    public string $namespace = '';
+
+    /**
+     * Single-file modules loaded when the app boots, so classes and
+     * functions defined in them are available everywhere.
+     *
+     * @var list<string>
+     */
+    public array $modules = ['models.php', 'views.php', 'forms.php'];
+
+    /**
+     * Called once every installed app is registered. Override to connect
+     * signals or register things.
+     */
+    public function ready(Application $app): void
+    {
+    }
+
+    public function templatesPath(): string
+    {
+        return $this->path . DIRECTORY_SEPARATOR . 'templates';
+    }
+
+    public function commandsPath(): string
+    {
+        return $this->path . DIRECTORY_SEPARATOR . 'Commands';
+    }
+}

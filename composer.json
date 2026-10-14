@@ -1,0 +1,46 @@
+{
+    "name": "brewphp/brewphp",
+    "description": "A small, Django-inspired PHP framework: easy to learn, readable core, zero runtime dependencies.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["framework", "django", "mvc", "orm", "admin", "brewphp"],
+    "homepage": "https://docs.brewphp.dev",
+    "support": {
+        "docs": "https://docs.brewphp.dev",
+        "issues": "https://github.com/brewphp/brewphp/issues",
+        "source": "https://github.com/brewphp/brewphp"
+    },
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BrewPHP\\": "src/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BrewPHP\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "ci": ["@cs", "@stan", "@test"]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
