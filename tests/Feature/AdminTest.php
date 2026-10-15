@@ -259,6 +259,26 @@ final class AdminTest extends AuthTestCase
         self::assertSame(['secret plans'], Note::objects()->valuesList('text', flat: true));
     }
 
+    public function testThereIsOneSitePerApplication(): void
+    {
+        $site = AdminSite::of($this->app);
+
+        self::assertSame($site, AdminSite::default());
+        self::assertSame($site, $this->app->get(AdminSite::class));
+    }
+
+    public function testViewOnlyPagesShowReadOnlyFieldsToo(): void
+    {
+        $staff = $this->staff('auth.view_user');
+        $this->client->login($staff);
+
+        $page = $this->client->get('/admin/auth/user/' . $staff->pk . '/change/')->content();
+        self::assertStringContainsString('View user', $page);
+        self::assertStringContainsString('Stored as a bcrypt_sha256 hash.', $page);
+        self::assertStringContainsString('Date joined', $page);
+        self::assertStringNotContainsString('name="username"', $page);
+    }
+
     public function testDeletePermissionAloneDoesNotShowTheList(): void
     {
         $this->client->login($this->staff('demo.delete_tag'));

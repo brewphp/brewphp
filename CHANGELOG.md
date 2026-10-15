@@ -153,6 +153,10 @@ project follows [Semantic Versioning](https://semver.org/).
 - **CLI (v0.6):** password prompts work with piped input.
 - **Forms (v0.6):** a field without a limit no longer removes `maxlength`,
   `min` or `max` set on its widget.
+- **Admin (v0.6):** `AdminSite::default()` (and the new `AdminSite::of()`)
+  return the same site whatever the order of `INSTALLED_APPS`, so
+  registrations from an app's `ready()` are never lost; view-only pages also
+  show `readonlyFields`; recent actions use the model's verbose name.
 
 ### Changed
 

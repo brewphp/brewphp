@@ -63,7 +63,20 @@ final class AdminSite
      */
     public static function default(): self
     {
-        return Application::getInstance()->get(self::class);
+        return self::of(Application::getInstance());
+    }
+
+    /**
+     * The one site of an application, created on first use, so apps whose
+     * ready() runs before the admin app's still register on the right site.
+     */
+    public static function of(Application $app): self
+    {
+        if (!$app->has(self::class)) {
+            $app->singleton(self::class, static fn (): self => new self($app));
+        }
+
+        return $app->get(self::class);
     }
 
     // Registry ------------------------------------------------------------------
@@ -468,7 +481,9 @@ final class AdminSite
         $form ??= $admin->getForm($request, $object);
 
         $readonly = [];
-        $readonlyNames = $canSave ? $admin->getReadonlyFields($request, $object) : array_keys($form->getFields());
+        $readonlyNames = $canSave
+            ? $admin->getReadonlyFields($request, $object)
+            : array_values(array_unique([...array_keys($form->getFields()), ...$admin->getReadonlyFields($request, $object)]));
         foreach ($readonlyNames as $name) {
             $readonly[] = ['label' => $admin->label($name), 'value' => $object !== null ? $admin->display($object, $name) : '-'];
         }
@@ -734,18 +749,19 @@ final class AdminSite
         foreach (LogEntry::objects()->filter(user: $user->pk)->limit(10) as $entry) {
             [$appLabel, $modelName] = array_pad(explode('.', $entry->content_type, 2), 2, '');
             $url = null;
-            if (!$entry->isDeletion()) {
-                try {
-                    $this->modelAdmin($appLabel, $modelName);
+            $type = ucfirst(str_replace('_', ' ', $modelName));
+            try {
+                $type = ucfirst($this->modelAdmin($appLabel, $modelName)->meta()->verboseName);
+                if (!$entry->isDeletion()) {
                     $url = reverse('admin:change', [$appLabel, $modelName, $entry->object_id]);
-                } catch (Http404) {
-                    // The model is no longer in the admin.
                 }
+            } catch (Http404) {
+                // The model is no longer in the admin.
             }
             $actions[] = [
                 'flag' => $entry->isAddition() ? 'addition' : ($entry->isChange() ? 'change' : 'deletion'),
                 'repr' => $entry->object_repr,
-                'type' => ucfirst(str_replace('_', ' ', $modelName)),
+                'type' => $type,
                 'url' => $url,
             ];
         }

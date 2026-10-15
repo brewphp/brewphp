@@ -34,9 +34,8 @@ final class AdminApp extends AppConfig
 
     public function ready(Application $app): void
     {
-        $app->singleton(AdminSite::class, static fn (): AdminSite => new AdminSite($app));
+        $site = AdminSite::of($app);
         $app->get(SystemChecks::class)->register(self::checks(...));
-        $site = $app->get(AdminSite::class);
 
         foreach ($app->apps() as $config) {
             $file = $config->path . DIRECTORY_SEPARATOR . 'admin.php';
@@ -80,7 +79,7 @@ final class AdminApp extends AppConfig
                 $messages[] = CheckMessage::error($id, sprintf('brewphp.admin needs %s in MIDDLEWARE.', $class));
             }
         }
-        foreach ($app->get(AdminSite::class)->registry() as $model => $admin) {
+        foreach (AdminSite::of($app)->registry() as $model => $admin) {
             foreach ([...$admin->listDisplay, ...$admin->listFilter] as $name) {
                 if ($name !== '__str__' && !$admin->meta()->hasField($name) && $admin->methodFor($name) === null) {
                     $messages[] = CheckMessage::error('admin.E108', sprintf('%s: "%s" is not a field of %s nor a method of the admin.', $admin::class, $name, $model));
