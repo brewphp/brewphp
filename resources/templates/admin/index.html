@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="app-list">
+        {% for app in apps %}
+            {% include "admin/_app.html" %}
+        {% empty %}
+            <p>You don’t have permission to view or edit anything.</p>
+        {% endfor %}
+    </div>
+    <aside class="module recent-actions">
+        <h2>Recent actions</h2>
+        <h3>My actions</h3>
+        {% if recent_actions %}
+        <ul class="actionlist">
+            {% for action in recent_actions %}
+            <li class="{{ action.flag }}">
+                {% if action.url %}<a href="{{ action.url }}">{{ action.repr }}</a>{% else %}{{ action.repr }}{% endif %}
+                <span class="mini">{{ action.type }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>None available</p>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

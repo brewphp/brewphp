@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+
+{% block bodyclass %}change-form{% endblock %}
+
+{% block content %}
+{% if history_url %}
+<div class="object-tools"><a class="button" href="{{ history_url }}">History</a></div>
+{% endif %}
+<form method="post"{% if form and form.is_multipart %} enctype="multipart/form-data"{% endif %} novalidate>
+    {% csrf_token %}
+    {% if form and form.errors %}
+        <p class="errornote">Please correct the error{{ form.errors|length|pluralize }} below.</p>
+        {{ form.non_field_errors }}
+    {% endif %}
+    <fieldset class="module aligned">
+        {% if form %}
+        {% for field in form %}
+            {% if field.is_hidden %}
+                {{ field }}
+            {% else %}
+            <div class="form-row{% if field.errors %} errors{% endif %}">
+                {{ field.label_tag }}
+                <div class="field-box">
+                    {{ field.errors }}
+                    {{ field }}
+                    {% if field.help_text %}<div class="help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% for item in readonly %}
+        <div class="form-row readonly-row">
+            <span class="label">{{ item.label }}:</span>
+            <div class="readonly">{{ item.value }}</div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+        {% if can_save %}
+            <button type="submit" name="_save" class="button default">Save</button>
+            {% if can_add_another %}<button type="submit" name="_addanother" class="button">Save and add another</button>{% endif %}
+            <button type="submit" name="_continue" class="button">Save and continue editing</button>
+        {% else %}
+            <a class="button" href="{{ model.changelist_url }}">Close</a>
+        {% endif %}
+        {% if delete_url %}<a href="{{ delete_url }}" class="deletelink">Delete</a>{% endif %}
+    </div>
+</form>
+{% endblock %}

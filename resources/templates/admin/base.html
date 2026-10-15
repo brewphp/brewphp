@@ -1,0 +1,39 @@
+{# The layout of every admin page. Override admin/base.html in your templates/ folder to restyle it. #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ title }} | {{ site_title }}</title>
+<link rel="stylesheet" href="{% url 'admin:static' 'admin.css' %}">
+<script src="{% url 'admin:static' 'admin.js' %}" defer></script>
+{% block extrahead %}{% endblock %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+<header class="header">
+    <a class="brand" href="{% url 'admin:index' %}">{{ site_header }}</a>
+    {% if show_user_tools %}
+    <div class="user-tools">
+        <span>Welcome, <strong>{{ admin_user.username }}</strong>.</span>
+        <a href="{{ site_url }}">View site</a>
+        <a href="{% url 'admin:password_change' %}">Change password</a>
+        <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}<button type="submit" class="link">Log out</button></form>
+    </div>
+    {% endif %}
+</header>
+{% if show_user_tools %}
+<nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    {% for crumb in breadcrumbs %} › {% if crumb.url %}<a href="{{ crumb.url }}">{{ crumb.label }}</a>{% else %}<span aria-current="page">{{ crumb.label }}</span>{% endif %}{% endfor %}
+</nav>
+{% endif %}
+<main class="content">
+    {% if admin_messages %}
+    <ul class="messagelist">{% for message in admin_messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block content_title %}<h1>{{ title }}</h1>{% endblock %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

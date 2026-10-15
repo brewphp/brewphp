@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+
+{% block bodyclass %}change-list{% endblock %}
+
+{% block content %}
+{% if add_url %}
+<div class="object-tools"><a class="button addlink" href="{{ add_url }}">Add {{ model.name }}</a></div>
+{% endif %}
+<div class="changelist{% if filters %} filtered{% endif %}">
+    <div class="changelist-main">
+        {% if has_search %}
+        <form class="search" method="get" role="search">
+            <label for="searchbar" class="visually-hidden">Search</label>
+            <input type="search" name="q" id="searchbar" value="{{ search }}" maxlength="200" placeholder="Search {{ model.plural|lower }}">
+            <button type="submit" class="button">Search</button>
+            {% if search %}<span class="small">{{ count }} result{{ count|pluralize }} (<a href="{{ clear_url }}">{{ total }} total</a>)</span>{% endif %}
+        </form>
+        {% endif %}
+
+        <form method="post" id="changelist-form">
+            {% csrf_token %}
+            {% if actions and rows %}
+            <div class="actions">
+                <label for="action-select">Action:</label>
+                <select name="action" id="action-select" required>
+                    <option value="">---------</option>
+                    {% for action in actions %}<option value="{{ action.name }}">{{ action.description }}</option>{% endfor %}
+                </select>
+                <button type="submit" class="button">Go</button>
+                <span class="action-counter" data-total="{{ rows|length }}">0 of {{ rows|length }} selected</span>
+            </div>
+            {% endif %}
+            <div class="results">
+                <table id="result_list">
+                    <thead>
+                        <tr>
+                            {% if actions %}<th scope="col" class="action-checkbox-column"><input type="checkbox" id="action-toggle" aria-label="Select all objects on this page"></th>{% endif %}
+                            {% for column in columns %}
+                            <th scope="col"{% if column.sorted %} class="sorted {{ column.sorted }}" aria-sort="{% if column.sorted == 'asc' %}ascending{% else %}descending{% endif %}"{% endif %}>
+                                {% if column.sortable %}<a href="{{ column.url }}">{{ column.label }}</a>{% else %}{{ column.label }}{% endif %}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            {% if actions %}<td class="action-checkbox"><input type="checkbox" name="_selected_action[]" value="{{ row.pk }}" class="action-select" aria-label="Select this object"></td>{% endif %}
+                            {% for cell in row.cells %}
+                            {% if forloop.first %}<th scope="row">{% else %}<td>{% endif %}{% if cell.url %}<a href="{{ cell.url }}">{{ cell.value }}</a>{% else %}{{ cell.value }}{% endif %}{% if forloop.first %}</th>{% else %}</td>{% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="{{ columns|length|add:1 }}" class="empty">No {{ model.plural|lower }} found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <p class="paginator">
+            {% for page in pages %}
+                {% if page.current %}<span class="this-page" aria-current="page">{{ page.number }}</span>{% elif page.url %}<a href="{{ page.url }}">{{ page.number }}</a>{% else %}<span class="ellipsis">…</span>{% endif %}
+            {% endfor %}
+            {{ count }} {% if count == 1 %}{{ model.name }}{% else %}{{ model.plural|lower }}{% endif %}
+        </p>
+    </div>
+
+    {% if filters %}
+    <aside id="changelist-filter" aria-labelledby="filter-heading">
+        <h2 id="filter-heading">Filter</h2>
+        {% for filter in filters %}
+        <details open>
+            <summary>By {{ filter.title|lower }}</summary>
+            <ul>
+                {% for choice in filter.choices %}
+                <li{% if choice.selected %} class="selected"{% endif %}><a href="{{ choice.url }}"{% if choice.selected %} aria-current="true"{% endif %}>{{ choice.label }}</a></li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endfor %}
+    </aside>
+    {% endif %}
+</div>
+{% endblock %}

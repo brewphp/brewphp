@@ -27,6 +27,7 @@ final class Apps implements \IteratorAggregate, \Countable
      * @var array<string, class-string<AppConfig>>
      */
     private static array $builtin = [
+        'brewphp.admin' => \BrewPHP\Admin\AdminApp::class,
         'brewphp.auth' => \BrewPHP\Auth\AuthApp::class,
         'brewphp.sessions' => \BrewPHP\Sessions\SessionsApp::class,
     ];

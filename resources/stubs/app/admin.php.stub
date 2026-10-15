@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use BrewPHP\Admin\ModelAdmin;
+use BrewPHP\Admin\Register;
+
+/*
+ * The admin of the "{{ label }}" app (with 'brewphp.admin' installed).
+ * Register a model to manage it at /admin/:
+ *
+ * #[Register(Entry::class)]
+ * final class EntryAdmin extends ModelAdmin
+ * {
+ *     public array $listDisplay = ['title', 'created_at'];
+ *     public array $searchFields = ['title'];
+ * }
+ */

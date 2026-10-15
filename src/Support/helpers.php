@@ -206,7 +206,7 @@ if (!function_exists('reverse')) {
     /**
      * The path of a named route: `reverse('blog:post-detail', ['id' => 5])` gives "/blog/posts/5/".
      *
-     * @param array<string, mixed> $parameters
+     * @param array<string|int, mixed> $parameters named, or positional in pattern order
      * @param array<string, mixed> $query
      */
     function reverse(string $name, array $parameters = [], array $query = []): string

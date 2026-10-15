@@ -26,7 +26,7 @@ class ModelChoiceField extends ChoiceField
     ];
 
     /**
-     * @param QuerySet<Model> $queryset
+     * @param QuerySet<covariant Model> $queryset
      * @param string $toFieldName the field identifying the object (default: the primary key)
      * @param (\Closure(Model): string)|null $labelFrom the label of an object (default: (string) $object)
      */

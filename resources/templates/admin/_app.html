@@ -1,0 +1,13 @@
+<section class="module app-{{ app.label }}">
+    <h2><a href="{{ app.url }}">{{ app.name }}</a></h2>
+    <table>
+        <caption class="visually-hidden">Models in the {{ app.name }} application</caption>
+        {% for model in app.models %}
+        <tr>
+            <th scope="row">{% if model.url %}<a href="{{ model.url }}">{{ model.name }}</a>{% else %}{{ model.name }}{% endif %}</th>
+            <td>{% if model.add_url %}<a class="addlink" href="{{ model.add_url }}">Add</a>{% endif %}</td>
+            <td>{% if model.url %}<a class="changelink" href="{{ model.url }}">View</a>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>

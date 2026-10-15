@@ -19,7 +19,8 @@ final class StartAppCommand extends Command
 
     public string $help = <<<'TEXT'
         Creates the folder of a new app with an App.php, models.php,
-        views.php, urls.php, a template and an empty migrations/ folder:
+        views.php, urls.php, admin.php, a template and an empty migrations/
+        folder:
 
           php manage.php startapp blog
 
@@ -63,6 +64,7 @@ final class StartAppCommand extends Command
             'models.php' => 'models.php',
             'views.php' => 'views.php',
             'urls.php' => 'urls.php',
+            'admin.php' => 'admin.php',
             'index.html' => 'templates' . DIRECTORY_SEPARATOR . $label . DIRECTORY_SEPARATOR . 'index.html',
         ];
         foreach ($files as $stub => $target) {

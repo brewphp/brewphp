@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+{% if actions %}
+<table class="history">
+    <thead><tr><th scope="col">Date/time</th><th scope="col">User</th><th scope="col">Action</th></tr></thead>
+    <tbody>
+        {% for action in actions %}
+        <tr><th scope="row">{{ action.time }}</th><td>{{ action.user }}</td><td>{{ action.message }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>This object doesn’t have a change history. It probably wasn’t added via this admin site.</p>
+{% endif %}
+{% endblock %}

@@ -4,7 +4,7 @@ A small, Django-inspired PHP framework: easy to learn, a readable core, and
 zero runtime dependencies.
 
 BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
-`manage.php`, migrations, auth and forms, and soon an automatic admin) to modern PHP 8.2+.
+`manage.php`, migrations, auth and forms, and an automatic admin) to modern PHP 8.2+.
 
 > **Status:** early development. Version 0.1 provides the foundation:
 > routing, views, requests and responses, settings, middleware, error pages
@@ -14,7 +14,7 @@ BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
 > to PHP, with inheritance, auto-escaping and custom tags and filters.
 > Version 0.4 adds migrations (`makemigrations`, `migrate`) and `startapp`.
 > Version 0.5 adds sessions, CSRF protection, users and permissions,
-> login views and forms.
+> login views and forms. Version 0.6 adds the automatic admin.
 > See the [roadmap](#roadmap).
 
 ## Quick start
@@ -98,7 +98,21 @@ return render('blog/post_list.html', ['posts' => $posts]);
 {% endblock %}
 ```
 
+```php
+<?php
+// apps/blog/admin.php: manage posts at /admin/
+
+#[Register(Post::class)]
+final class PostAdmin extends ModelAdmin
+{
+    public array $listDisplay = ['title', 'author', 'published_at'];
+    public array $listFilter = ['author'];
+    public array $searchFields = ['title', 'author__name'];
+}
+```
+
 ```bash
+php manage.php createsuperuser # a user who can log in to the admin
 php manage.php startapp blog   # create apps/blog/
 php manage.php makemigrations  # write migrations for model changes
 php manage.php migrate         # apply them
@@ -119,7 +133,7 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 | 0.3 | Templates | Done |
 | 0.4 | Migrations, `startapp` | Done |
 | 0.5 | Auth, sessions, CSRF, forms | Done |
-| 0.6 | Automatic admin | Planned |
+| 0.6 | Automatic admin | Done |
 
 ## Contributing
 

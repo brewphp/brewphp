@@ -87,4 +87,13 @@ class AuthenticationForm extends Form
     {
         return $this->isValid() ? $this->user : null;
     }
+
+    /**
+     * The user the credentials matched, before other checks (for subclasses
+     * that add rules in clean()).
+     */
+    protected function getUserUnchecked(): ?User
+    {
+        return $this->user;
+    }
 }

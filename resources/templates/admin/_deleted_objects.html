@@ -1,0 +1,11 @@
+<ul class="deleted-objects">
+    {% for group in deleted_objects %}
+    <li>
+        <strong>{{ group.model }}</strong>
+        <ul>
+            {% for item in group.items %}<li>{{ item }}</li>{% endfor %}
+            {% if group.more %}<li>… and {{ group.more }} more</li>{% endif %}
+        </ul>
+    </li>
+    {% endfor %}
+</ul>

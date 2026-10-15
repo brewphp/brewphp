@@ -57,6 +57,17 @@ final class Collector
     }
 
     /**
+     * Everything collected so far, by model class (used to show what a
+     * deletion would remove before doing it).
+     *
+     * @return array<class-string<Model>, list<Model>>
+     */
+    public function objects(): array
+    {
+        return array_map('array_values', $this->objects);
+    }
+
+    /**
      * Delete everything collected in one transaction; returns the number of rows.
      */
     public function delete(): int

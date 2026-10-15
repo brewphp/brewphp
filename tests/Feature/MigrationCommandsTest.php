@@ -198,7 +198,7 @@ final class MigrationCommandsTest extends TestCase
         [$code, $out] = $this->manage(['startapp', 'blog_posts']);
         self::assertSame(0, $code, $out);
         self::assertStringContainsString('Created the app "blog_posts" in apps/blog_posts/', $out);
-        foreach (['App.php', 'models.php', 'views.php', 'urls.php', 'templates/blog_posts/index.html', 'migrations/.gitkeep'] as $file) {
+        foreach (['App.php', 'models.php', 'views.php', 'urls.php', 'admin.php', 'templates/blog_posts/index.html', 'migrations/.gitkeep'] as $file) {
             self::assertFileExists($this->project . '/apps/blog_posts/' . $file);
         }
         self::assertStringContainsString('namespace Apps\\BlogPosts;', (string) file_get_contents($this->project . '/apps/blog_posts/App.php'));

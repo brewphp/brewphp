@@ -8,6 +8,37 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Admin (v0.6):** the `brewphp.admin` app, an automatic admin like
+  Django's: `AdminSite` (`AdminSite::default()->urls()` under the `admin`
+  namespace) with a dashboard, app pages, change lists, add/change/delete
+  pages with a confirmation that lists cascaded objects, object history,
+  and staff login, logout (POST only) and password change; `ModelAdmin`
+  with `listDisplay` (fields, `__str__` or admin methods),
+  `listDisplayLinks`, `listFilter` (booleans, choices, foreign keys, date
+  ranges, values), `searchFields` (`^`, `=` and related lookups),
+  `ordering`, `listPerPage`, `fields`, `exclude`, `readonlyFields`,
+  `labels`, `formClass`, custom `actions` and "Delete selected", and the
+  hooks `getQueryset()`, `getFields()`, `getReadonlyFields()`, `getForm()`,
+  `saveModel()`, `saveRelated()`, `deleteModel()` and the
+  `has*Permission()` methods; the `#[Register]` attribute and auto-discovery
+  of each app's `admin.php`; `UserAdmin` and `GroupAdmin`; the `LogEntry`
+  model (`admin_log_entry`) for recent actions and history; templates in
+  `resources/templates/admin/` and a stylesheet and script served from a
+  fixed list (no inline code, so a strict CSP works); `admin.E001` to
+  `admin.E004`, `admin.E108` and `admin.E116` checks.
+- **Admin security (v0.6):** only active staff get in; every page checks
+  the model's view/add/change/delete permission; `getQueryset()` limits
+  every page and action (rows outside it are 404s); filters, sorting and
+  actions only accept what the ModelAdmin declares; deleting needs the
+  delete permission of every cascaded model; staff who are not superusers
+  cannot see superusers or change superuser status, groups or permissions;
+  admin pages are never cached.
+- **`startapp` (v0.6):** also writes an `admin.php`.
+- **Forms (v0.6):** `AuthenticationForm::getUserUnchecked()` for subclasses
+  that add login rules.
+- **Database (v0.6):** `Collector::objects()` lists what a deletion would
+  remove.
+
 - **Sessions (v0.5):** `SessionMiddleware` and `$request->session()`
   (`get`, `set`, `has`, `remove`, `pull`, `clear`, `flush`, `cycleKey`),
   loaded lazily and saved only when changed; file (default), database

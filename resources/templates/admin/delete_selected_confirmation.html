@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+
+{% block bodyclass %}delete-confirmation{% endblock %}
+
+{% block content %}
+{% if protected %}
+    <p>Deleting the selected {{ model.plural|lower }} would require deleting the following protected related objects:</p>
+    <ul>{% for item in protected %}<li>{{ item }}</li>{% endfor %}</ul>
+    <a class="button" href="{{ model.changelist_url }}">Back</a>
+{% elif perms_lacking %}
+    <p>Deleting the selected {{ model.plural|lower }} would result in deleting related objects, but your account doesn’t have permission to delete the following types of objects:</p>
+    <ul>{% for item in perms_lacking %}<li>{{ item }}</li>{% endfor %}</ul>
+    <a class="button" href="{{ model.changelist_url }}">Back</a>
+{% else %}
+    <p>Are you sure you want to delete the selected {{ model.plural|lower }}? All of the following objects and their related items will be deleted:</p>
+    {% include "admin/_deleted_objects.html" %}
+    <form method="post" action="{{ model.changelist_url }}">
+        {% csrf_token %}
+        {% for object in objects %}<input type="hidden" name="_selected_action[]" value="{{ object.pk }}">{% endfor %}
+        <input type="hidden" name="action" value="delete_selected">
+        <input type="hidden" name="post" value="yes">
+        <div class="submit-row">
+            <button type="submit" class="button danger">Yes, I’m sure</button>
+            <a class="button cancel" href="{{ model.changelist_url }}">No, take me back</a>
+        </div>
+    </form>
+{% endif %}
+{% endblock %}
