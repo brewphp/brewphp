@@ -13,7 +13,7 @@ namespace BrewPHP\Templates;
  *
  *     return new SafeString('<b>' . e($name) . '</b>');
  */
-final class SafeString implements \Stringable, \JsonSerializable
+final class SafeString implements HtmlSafe, \JsonSerializable
 {
     public function __construct(private readonly string $value)
     {

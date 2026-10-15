@@ -1,0 +1,1 @@
+<form method="post">{% csrf_token %}</form>{% if user.is_authenticated %}hi {{ user.username }}{% else %}anonymous{% endif %}{% if perms.demo.add_tag %} can-add{% endif %}

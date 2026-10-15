@@ -90,6 +90,24 @@ class Response
         return $this;
     }
 
+    /**
+     * Add header names to `Vary` (once each), e.g. `vary('Cookie')` when the
+     * response depends on the session.
+     */
+    public function vary(string ...$headers): static
+    {
+        $current = array_filter(array_map('trim', explode(',', (string) $this->getHeader('Vary'))), static fn (string $h): bool => $h !== '');
+        $lower = array_map('strtolower', $current);
+        foreach ($headers as $header) {
+            if (!in_array(strtolower($header), $lower, true)) {
+                $current[] = $header;
+                $lower[] = strtolower($header);
+            }
+        }
+
+        return $this->header('Vary', implode(', ', $current));
+    }
+
     public function getHeader(string $name): ?string
     {
         return $this->headers[strtolower($name)][1] ?? null;

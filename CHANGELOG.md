@@ -8,6 +8,62 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Sessions (v0.5):** `SessionMiddleware` and `$request->session()`
+  (`get`, `set`, `has`, `remove`, `pull`, `clear`, `flush`, `cycleKey`),
+  loaded lazily and saved only when changed; file (default), database
+  (`brewphp.sessions` app, `sessions_session` table) and array stores;
+  data stored as JSON, never unserialize(); ids the store does not know are
+  never adopted (no session fixation); HttpOnly, SameSite=Lax cookies with
+  the `SESSION_*` settings; the `clearsessions` command.
+- **Messages (v0.5):** one-time flash messages (`Messages::success()`,
+  `info()`, `warning()`, `error()`, `debug()`) and the `messages` context
+  processor.
+- **CSRF protection (v0.5):** `CsrfViewMiddleware` with Django's masked
+  tokens (a different token on every page, against BREACH), the
+  `csrfmiddlewaretoken` field or `X-CSRFToken` header, Origin checks, Referer
+  checks over HTTPS, `CSRF_TRUSTED_ORIGINS` (with `https://*.example.com`),
+  `CSRF_USE_SESSIONS`, the `#[CsrfExempt]` attribute, token rotation at
+  login, and `csrf_token` in every template rendered with a request.
+- **Auth (v0.5):** the `brewphp.auth` app with `User`, `Group` and
+  `Permission` models (and their link tables), default add/change/delete/view
+  permissions created after `migrate`; `Auth::authenticate()`, `login()`,
+  `logout()` and `updateSessionAuthHash()`; `AuthenticationMiddleware` and
+  `$request->user()` (a `User` or `AnonymousUser`); `ModelBackend` with
+  timing-safe lookups; Argon2id or bcrypt-SHA256 password hashes upgraded at
+  login (`PASSWORD_HASHER`, `PASSWORD_HASHER_OPTIONS`); password validators
+  (`MinimumLengthValidator`, `CommonPasswordValidator`,
+  `NumericPasswordValidator`, `UserAttributeSimilarityValidator`); sessions
+  logged out when the password changes; login throttling
+  (`AUTH_LOGIN_ATTEMPTS`, `AUTH_LOGIN_LOCKOUT`); `LoginRequired` and
+  `PermissionRequired` route middleware; `LoginView`, `LogoutView` (POST
+  only), `PasswordChangeView` and `PasswordChangeDoneView` with templates and
+  `Auth\Urls::patterns()`; the `auth` context processor (`user`, `perms`);
+  the `createsuperuser` and `changepassword` commands.
+- **Forms (v0.5):** `Form` with fields, per-field `clean<Name>()` hooks,
+  `clean()`, errors, prefixes, initial values and escaped rendering
+  (`{{ form }}`, `{{ form.field }}`, `label_tag`, `errors`, help texts with
+  `aria-describedby`); fields `CharField`, `EmailField`, `URLField` (http and
+  https only), `SlugField`, `IntegerField`, `FloatField`, `DecimalField`,
+  `BooleanField`, `ChoiceField` (arrays or backed enums),
+  `MultipleChoiceField`, `DateField`, `DateTimeField`, `TimeField`,
+  `UUIDField`, `JsonField`, `FileField` (size and extension checks),
+  `ModelChoiceField` and `ModelMultipleChoiceField` (limited to their
+  QuerySet); widgets for every input type, selects, radios and checkboxes;
+  `ModelForm`, which requires an explicit field list (no mass assignment)
+  and runs the model's `fullClean()`.
+- **Security helpers (v0.5):** `Signer` (HMAC-SHA256 with salts,
+  timestamps and signed JSON), `Redirects::isSafe()` against open
+  redirects, and a file-based `RateLimiter`.
+- **Testing (v0.5):** `BrewPHP\Testing\Client`, a test browser that keeps
+  cookies, logs users in and provides CSRF tokens.
+- **Templates (v0.5):** the `HtmlSafe` interface for objects that print
+  their own escaped HTML.
+- **HTTP (v0.5):** `Response::vary()`; `Request::session()`,
+  `hasSession()`, `user()` and `setUser()`.
+- **Checks (v0.5):** `auth.W001`/`auth.E001` for the middleware order, and
+  `check --deploy` warnings for a missing `CsrfViewMiddleware` and insecure
+  session or CSRF cookies.
+
 - **Migrations (v0.4):** `BrewPHP\Db\Migrations` with migration files in
   each app's `migrations/` folder (`NNNN_name.php` returning an anonymous
   `Migration` subclass with `$dependencies`, `$initial`, `$atomic` and
@@ -45,6 +101,10 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Migrations (v0.5):** generated files use `return new class () extends Migration {`
+  (PSR-12).
+- **Debug page (v0.5):** values whose names contain SESSION or CSRF (such
+  as the session cookie) are masked too.
 - **SQLite schema editor:** adding a non-null column without a default to an
   empty table, or making a column non-null without a default, now works as
   on MySQL and PostgreSQL; it only fails when a row needs a value.

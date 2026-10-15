@@ -4,7 +4,7 @@ A small, Django-inspired PHP framework: easy to learn, a readable core, and
 zero runtime dependencies.
 
 BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
-`manage.php`, and later migrations and an automatic admin) to modern PHP 8.2+.
+`manage.php`, migrations, auth and forms, and soon an automatic admin) to modern PHP 8.2+.
 
 > **Status:** early development. Version 0.1 provides the foundation:
 > routing, views, requests and responses, settings, middleware, error pages
@@ -13,6 +13,8 @@ BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
 > PostgreSQL. Version 0.3 adds the Django-like template language, compiled
 > to PHP, with inheritance, auto-escaping and custom tags and filters.
 > Version 0.4 adds migrations (`makemigrations`, `migrate`) and `startapp`.
+> Version 0.5 adds sessions, CSRF protection, users and permissions,
+> login views and forms.
 > See the [roadmap](#roadmap).
 
 ## Quick start
@@ -116,7 +118,7 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 | 0.2 | ORM (SQLite, MySQL, PostgreSQL) | Done |
 | 0.3 | Templates | Done |
 | 0.4 | Migrations, `startapp` | Done |
-| 0.5 | Auth, sessions, CSRF, forms | Planned |
+| 0.5 | Auth, sessions, CSRF, forms | Done |
 | 0.6 | Automatic admin | Planned |
 
 ## Contributing

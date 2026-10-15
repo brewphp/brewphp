@@ -130,11 +130,11 @@ final class Runtime
     // Output --------------------------------------------------------------------
 
     /**
-     * A value as HTML-escaped text (SafeString values are left alone).
+     * A value as HTML-escaped text (SafeString and other HtmlSafe values are left alone).
      */
     public static function escape(mixed $value): string
     {
-        return $value instanceof SafeString ? (string) $value : self::escapeHtml(self::toString($value));
+        return $value instanceof HtmlSafe ? (string) $value : self::escapeHtml(self::toString($value));
     }
 
     public static function escapeHtml(string $text): string

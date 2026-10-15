@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace BrewPHP\Http;
 
+use BrewPHP\Auth\Authenticatable;
+use BrewPHP\Core\ImproperlyConfigured;
+use BrewPHP\Sessions\Session;
+
 /**
  * An incoming HTTP request.
  *
@@ -369,6 +373,52 @@ class Request
     public function setAttribute(string $key, mixed $value): void
     {
         $this->attributes[$key] = $value;
+    }
+
+    // Session and user ---------------------------------------------------------
+
+    /**
+     * The visitor's session (needs SessionMiddleware).
+     */
+    public function session(): Session
+    {
+        $session = $this->attributes['session'] ?? null;
+
+        return $session instanceof Session ? $session : throw new ImproperlyConfigured(
+            'This request has no session. Add BrewPHP\Sessions\SessionMiddleware to MIDDLEWARE.',
+        );
+    }
+
+    public function hasSession(): bool
+    {
+        return ($this->attributes['session'] ?? null) instanceof Session;
+    }
+
+    /**
+     * The logged-in user, or an AnonymousUser (needs AuthenticationMiddleware).
+     * The user is loaded on first use.
+     */
+    public function user(): Authenticatable
+    {
+        $user = $this->attributes['user'] ?? null;
+        if ($user instanceof Authenticatable) {
+            return $user;
+        }
+        $resolver = $this->attributes['_user_resolver'] ?? null;
+        if (!$resolver instanceof \Closure) {
+            throw new ImproperlyConfigured('This request has no user. Add BrewPHP\Auth\AuthenticationMiddleware to MIDDLEWARE, after SessionMiddleware.');
+        }
+        $user = $resolver($this);
+        if (!$user instanceof Authenticatable) {
+            throw new \UnexpectedValueException('The user resolver must return an Authenticatable.');
+        }
+
+        return $this->attributes['user'] = $user;
+    }
+
+    public function setUser(Authenticatable $user): void
+    {
+        $this->attributes['user'] = $user;
     }
 
     private function serverString(string $key, string $default = ''): string

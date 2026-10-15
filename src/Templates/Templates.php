@@ -106,13 +106,15 @@ final class Templates
     }
 
     /**
-     * The variables every context processor adds for this request.
+     * The variables every context processor adds for this request. Like
+     * in Django, `csrf_token` is always there, so `{% csrf_token %}` works
+     * whatever TEMPLATES.CONTEXT_PROCESSORS lists.
      *
      * @return array<string, mixed>
      */
     public function processContext(Request $request): array
     {
-        $context = [];
+        $context = ContextProcessors::csrf($request);
         foreach ($this->contextProcessors as $processor) {
             $context = array_replace($context, $processor($request));
         }

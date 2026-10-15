@@ -13,8 +13,7 @@ use BrewPHP\Db\Migrations\Operations\Operation;
  * A migration file in `apps/<app>/migrations/` returns an instance of an
  * anonymous subclass:
  *
- *     return new class extends Migration
- *     {
+ *     return new class () extends Migration {
  *         public array $dependencies = ['blog.0001_initial'];
  *
  *         public function operations(): array

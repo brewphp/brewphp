@@ -22,7 +22,7 @@ use BrewPHP\Templates\TemplateError;
  */
 final class ErrorHandler
 {
-    private const SENSITIVE = '/SECRET|PASSWORD|PASS|KEY|TOKEN|SIGNATURE|AUTH|COOKIE|CREDENTIAL|PRIVATE/i';
+    private const SENSITIVE = '/SECRET|PASSWORD|PASS|KEY|TOKEN|SIGNATURE|AUTH|COOKIE|CREDENTIAL|PRIVATE|SESSION|CSRF/i';
 
     private const TITLES = [
         400 => 'Bad request',

@@ -100,5 +100,10 @@ final class ErrorPagesTest extends TestCase
             ['SECRET_KEY' => '********************', 'DATABASES' => ['default' => ['PASSWORD' => '********************', 'NAME' => 'db']], 'DEBUG' => true],
             ErrorHandler::mask(['SECRET_KEY' => 'x', 'DATABASES' => ['default' => ['PASSWORD' => 'p', 'NAME' => 'db']], 'DEBUG' => true]),
         );
+        // Cookies are masked by name: the session id and the CSRF secret never show.
+        self::assertSame(
+            ['brewphp_session' => '********************', 'csrftoken' => '********************', 'theme' => 'dark'],
+            ErrorHandler::mask(['brewphp_session' => 'abc', 'csrftoken' => 'def', 'theme' => 'dark']),
+        );
     }
 }

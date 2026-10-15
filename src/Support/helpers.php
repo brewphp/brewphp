@@ -24,6 +24,7 @@ use BrewPHP\Http\Response;
 use BrewPHP\Routing\Route;
 use BrewPHP\Routing\RouteGroup;
 use BrewPHP\Routing\Router;
+use BrewPHP\Templates\HtmlSafe;
 use BrewPHP\Templates\SafeString;
 
 // Application -----------------------------------------------------------------
@@ -324,11 +325,11 @@ if (!function_exists('abort')) {
 if (!function_exists('e')) {
     /**
      * Escape a value for HTML. Use it for everything you print in a PHP
-     * template. A SafeString is already safe and is returned unchanged.
+     * template. A SafeString (or other HtmlSafe value) is returned unchanged.
      */
     function e(mixed $value): string
     {
-        if ($value instanceof SafeString) {
+        if ($value instanceof HtmlSafe) {
             return (string) $value;
         }
         if ($value instanceof BackedEnum) {

@@ -196,8 +196,18 @@ final class SystemChecks
         if ((int) $settings->get('SECURE_HSTS_SECONDS', 0) <= 0) {
             $messages[] = CheckMessage::warning('security.W004', 'SECURE_HSTS_SECONDS is not set, so browsers are not told to always use HTTPS.', 'Set it (e.g. 31536000) once the whole site works over HTTPS.');
         }
-        if (!in_array(\BrewPHP\Middleware\SecurityHeadersMiddleware::class, $settings->array('MIDDLEWARE'), true)) {
+        $middleware = $settings->array('MIDDLEWARE');
+        if (!in_array(\BrewPHP\Middleware\SecurityHeadersMiddleware::class, $middleware, true)) {
             $messages[] = CheckMessage::warning('security.W001', 'SecurityHeadersMiddleware is not in MIDDLEWARE, so security headers are not sent.');
+        }
+        if (!in_array(\BrewPHP\Security\CsrfViewMiddleware::class, $middleware, true)) {
+            $messages[] = CheckMessage::warning('security.W003', 'CsrfViewMiddleware is not in MIDDLEWARE, so forms are not protected against cross-site request forgery.', 'Add BrewPHP\Security\CsrfViewMiddleware to MIDDLEWARE.');
+        }
+        if (in_array(\BrewPHP\Sessions\SessionMiddleware::class, $middleware, true) && !$settings->bool('SESSION_COOKIE_SECURE')) {
+            $messages[] = CheckMessage::warning('security.W012', 'SESSION_COOKIE_SECURE is off, so the session cookie can travel over plain HTTP.', 'Set SESSION_COOKIE_SECURE to true on an HTTPS site.');
+        }
+        if (in_array(\BrewPHP\Security\CsrfViewMiddleware::class, $middleware, true) && !$settings->bool('CSRF_COOKIE_SECURE') && !$settings->bool('CSRF_USE_SESSIONS')) {
+            $messages[] = CheckMessage::warning('security.W016', 'CSRF_COOKIE_SECURE is off, so the CSRF cookie can travel over plain HTTP.', 'Set CSRF_COOKIE_SECURE to true on an HTTPS site.');
         }
 
         return $messages;
