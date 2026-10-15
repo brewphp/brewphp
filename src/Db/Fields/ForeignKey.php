@@ -25,6 +25,9 @@ use BrewPHP\Support\Str;
  */
 class ForeignKey extends Field
 {
+    /** The target's metadata when it comes from migration state instead of a model class. */
+    private ?ModelMeta $boundTarget = null;
+
     /**
      * @param string $to the target: a model class, "self", or "app.Model"
      * @param OnDelete $onDelete what happens to this object when the target is deleted
@@ -55,7 +58,34 @@ class ForeignKey extends Field
 
     public function targetMeta(): ModelMeta
     {
-        return $this->target()::meta();
+        return $this->boundTarget ?? $this->target()::meta();
+    }
+
+    /**
+     * Point the field at a ModelMeta instead of a model class. Migrations
+     * do this so that a foreign key in migration state uses the target
+     * table as it was at that point, not the current model.
+     *
+     * @internal
+     */
+    public function bindTarget(ModelMeta $target): void
+    {
+        $this->boundTarget = $target;
+    }
+
+    /**
+     * Migrations name the target as "app_label.ModelName", so they never
+     * depend on a model class.
+     */
+    public function deconstructForMigration(): array
+    {
+        $deconstructed = parent::deconstructForMigration();
+        $target = $this->boundTarget ?? ($this->model !== '' || class_exists($this->to) ? $this->target()::meta() : null);
+        if ($target !== null) {
+            $deconstructed['options']['to'] = $target->label();
+        }
+
+        return $deconstructed;
     }
 
     public function isRelation(): bool
@@ -127,5 +157,14 @@ class ForeignKey extends Field
     protected function attnameFor(string $name): string
     {
         return $name . '_id';
+    }
+
+    /**
+     * onDelete is applied in PHP when objects are deleted, and relatedName
+     * only names the reverse accessor: neither changes the table.
+     */
+    protected function phpOnlyOptions(): array
+    {
+        return [...parent::phpOnlyOptions(), 'onDelete', 'relatedName'];
     }
 }

@@ -342,6 +342,14 @@ final class Connection
     // Schema ------------------------------------------------------------------
 
     /**
+     * Whether a table exists in the database.
+     */
+    public function hasTable(string $table): bool
+    {
+        return $this->selectOne($this->grammar->compileTableExists(), [$table]) !== null;
+    }
+
+    /**
      * A schema editor to create and change tables. With `$collectOnly`, the
      * SQL is collected (see `collectedSql()`) instead of executed.
      */

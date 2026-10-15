@@ -13,8 +13,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class InputTest extends TestCase
 {
     private const ARGUMENTS = [
-        'name' => ['description' => '', 'required' => true, 'default' => null],
-        'extra' => ['description' => '', 'required' => false, 'default' => 'x'],
+        'name' => ['description' => '', 'required' => true, 'default' => null, 'array' => false],
+        'extra' => ['description' => '', 'required' => false, 'default' => 'x', 'array' => false],
     ];
 
     private const OPTIONS = [

@@ -58,7 +58,7 @@ final class Input
     /**
      * Match the tokens against a command's definition.
      *
-     * @param array<string, array{description: string, required: bool, default: mixed}> $arguments
+     * @param array<string, array{description: string, required: bool, default: mixed, array: bool}> $arguments
      * @param array<string, array{description: string, shortcut: ?string, value: bool, default: mixed}> $options
      */
     public function bind(array $arguments, array $options): void
@@ -107,13 +107,22 @@ final class Input
         }
 
         $names = array_keys($arguments);
-        if (count($positional) > count($names)) {
+        $variadic = $arguments !== [] && end($arguments)['array'];
+        if (!$variadic && count($positional) > count($names)) {
             throw new ConsoleException(sprintf(
                 'Too many arguments%s.',
                 $names === [] ? ': this command takes none' : ', expected: ' . implode(' ', $names),
             ));
         }
         foreach ($arguments as $name => $argument) {
+            if ($argument['array']) {
+                if ($positional === [] && $argument['required']) {
+                    throw new ConsoleException(sprintf('Missing required argument "%s".', $name));
+                }
+                $this->arguments[$name] = $positional !== [] ? $positional : $argument['default'];
+                $positional = [];
+                continue;
+            }
             $value = array_shift($positional);
             if ($value === null && $argument['required']) {
                 throw new ConsoleException(sprintf('Missing required argument "%s".', $name));

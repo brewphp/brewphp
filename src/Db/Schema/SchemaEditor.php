@@ -21,9 +21,10 @@ use BrewPHP\Db\ModelMeta;
  *     $editor->createModel(Post::class);
  *     $editor->addField(Post::class, Post::meta()->field('subtitle'));
  *
- * Until migrations arrive (v0.4), this is how tables are created. Every
- * method accepts a model class or a ModelMeta. With `collectOnly`, the SQL
- * is collected in collectedSql() instead of being executed.
+ * Migrations drive it with ModelMeta objects built from migration state;
+ * it can also be used directly. Every method accepts a model class or a
+ * ModelMeta. With `collectOnly`, the SQL is collected in collectedSql()
+ * instead of being executed (that is how `sqlmigrate` works).
  *
  * The model (or ModelMeta) must describe the table as it is in the
  * database: SQLite rebuilds the table from it, so a column it does not
@@ -55,6 +56,31 @@ abstract class SchemaEditor
     public function collectedSql(): array
     {
         return $this->collected;
+    }
+
+    public function connection(): Connection
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Whether statements are only collected, not run.
+     */
+    public function isCollectOnly(): bool
+    {
+        return $this->collectOnly;
+    }
+
+    /**
+     * Run (or collect) one SQL statement. Used by the RunSQL migration
+     * operation, so raw SQL shows up in `sqlmigrate` too.
+     */
+    public function execute(string $sql): void
+    {
+        $this->collected[] = $sql;
+        if (!$this->collectOnly) {
+            $this->connection->statement($sql);
+        }
     }
 
     // Tables --------------------------------------------------------------------
@@ -156,6 +182,16 @@ abstract class SchemaEditor
         // ...change the column...
         if ($renamed) {
             $this->execute(sprintf('ALTER TABLE %s RENAME COLUMN %s TO %s', $quoted, $this->grammar->quoteIdentifier($old->column), $this->grammar->quoteIdentifier($new->column)));
+        }
+        if ($nullChanged && !$new->null && $new->hasDefault() && !$new->default instanceof \Closure) {
+            // Rows that are NULL get the default before the column becomes NOT NULL.
+            $this->execute(sprintf(
+                'UPDATE %s SET %s = %s WHERE %s IS NULL',
+                $quoted,
+                $this->grammar->quoteIdentifier($new->column),
+                $this->grammar->literal($new->toDb($new->default)),
+                $this->grammar->quoteIdentifier($new->column),
+            ));
         }
         if ($typeChanged || $nullChanged) {
             foreach ($this->alterColumnSql($table, $old, $new, $typeChanged, $nullChanged) as $sql) {
@@ -348,19 +384,6 @@ abstract class SchemaEditor
         return $statements;
     }
 
-    protected function execute(string $sql): void
-    {
-        $this->collected[] = $sql;
-        if (!$this->collectOnly) {
-            $this->connection->statement($sql);
-        }
-    }
-
-    protected function isCollectOnly(): bool
-    {
-        return $this->collectOnly;
-    }
-
     /**
      * @param class-string<Model>|ModelMeta $model
      */
@@ -376,7 +399,7 @@ abstract class SchemaEditor
         return $model::meta();
     }
 
-    private static function assertAttached(Field $field): void
+    protected static function assertAttached(Field $field): void
     {
         if ($field->name === '' || $field->column === '') {
             throw new FieldError(sprintf('The %s has no name. Use a field of the model, e.g. Post::meta()->field(\'title\').', $field::class));

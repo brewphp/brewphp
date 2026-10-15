@@ -8,6 +8,46 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Migrations (v0.4):** `BrewPHP\Db\Migrations` with migration files in
+  each app's `migrations/` folder (`NNNN_name.php` returning an anonymous
+  `Migration` subclass with `$dependencies`, `$initial`, `$atomic` and
+  `operations()`); the operations `CreateModel`, `DeleteModel`,
+  `RenameModel`, `AlterModelTable`, `AddField`, `RemoveField`,
+  `AlterField`, `RenameField`, `AddIndex`, `RemoveIndex`, `RunSQL` and
+  `RunPHP` (with `preserveDefault: false` one-off defaults); `ProjectState`
+  and `ModelState` (historical models whose foreign keys point at the
+  table as it was); `Loader`, `Graph` (dependency order, conflicts, cycles,
+  name prefixes), `Recorder` (the `brewphp_migrations` table), `Executor`
+  (forwards, backwards, `zero`, fake, per-migration transactions with
+  foreign key checks on SQLite, consistent-history check), `Autodetector`
+  with an interactive `Questioner` (renamed models and fields, values for
+  new non-null fields) and `Writer`, which only writes plain values
+  through `var_export()`. Migrations record only what changes the database:
+  options such as `helpText`, `choices` or `onDelete` need no migration.
+- **Migration commands (v0.4):** `makemigrations` (apps, `--name`,
+  `--empty`, `--dry-run`, `--check` for CI), `migrate` (app, target
+  migration or `zero`, `--fake`, `--plan`, `--database`, and a warning
+  for model changes without migrations), `showmigrations` (`--plan`) and
+  `sqlmigrate` (`--backwards`). Migrations are never written into the
+  framework or a Composer package.
+- **`startapp` (v0.4):** creates `apps/<label>/` with `App.php`,
+  `models.php`, `views.php`, `urls.php`, a template and `migrations/`, from
+  stubs a project can override in `stubs/app/`. Labels are validated (no
+  path tricks, no reserved or installed labels).
+- **Apps:** `AppConfig::migrationsPath()` and the `AppConfig::migrated()`
+  hook, called after every successful `migrate`.
+- **CLI:** array arguments (`addArgument(array: true)`, shown as
+  `[<app>...]`) and `Command::relative()`.
+- **Database:** `Connection::hasTable()`; `SchemaEditor::execute()`,
+  `connection()` and `isCollectOnly()` are public;
+  `Field::deconstructForMigration()`.
+
+### Changed
+
+- **SQLite schema editor:** adding a non-null column without a default to an
+  empty table, or making a column non-null without a default, now works as
+  on MySQL and PostgreSQL; it only fails when a row needs a value.
+
 - **Template language:** a Django-like template engine (`BrewPHP\Templates`)
   for every template whose extension is not `.php`: variables with dotted
   lookups (array keys, properties, `__get`, zero-argument methods with

@@ -53,7 +53,7 @@ abstract class Command
 
     protected Output $output;
 
-    /** @var array<string, array{description: string, required: bool, default: mixed}> */
+    /** @var array<string, array{description: string, required: bool, default: mixed, array: bool}> */
     private array $argumentDefinitions = [];
 
     /** @var array<string, array{description: string, shortcut: ?string, value: bool, default: mixed}> */
@@ -84,7 +84,7 @@ abstract class Command
     }
 
     /**
-     * @return array<string, array{description: string, required: bool, default: mixed}>
+     * @return array<string, array{description: string, required: bool, default: mixed, array: bool}>
      */
     public function arguments(): array
     {
@@ -103,9 +103,18 @@ abstract class Command
         return $this->optionDefinitions;
     }
 
-    protected function addArgument(string $name, string $description = '', bool $required = false, mixed $default = null): static
+    /**
+     * Add a positional argument. With `array: true` it must be the last
+     * one and collects every remaining word as a list (`[<app>...]`).
+     */
+    protected function addArgument(string $name, string $description = '', bool $required = false, mixed $default = null, bool $array = false): static
     {
-        $this->argumentDefinitions[$name] = ['description' => $description, 'required' => $required, 'default' => $default];
+        $this->argumentDefinitions[$name] = [
+            'description' => $description,
+            'required' => $required,
+            'default' => $array ? ($default ?? []) : $default,
+            'array' => $array,
+        ];
 
         return $this;
     }
@@ -204,6 +213,17 @@ abstract class Command
             $this->line('| ' . implode(' | ', $cells) . ' |');
         }
         $this->line($border);
+    }
+
+    /**
+     * A path relative to the project, with forward slashes, for messages.
+     */
+    protected function relative(string $path): string
+    {
+        $base = $this->app->basePath() . DIRECTORY_SEPARATOR;
+        $relative = str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
+
+        return str_replace(DIRECTORY_SEPARATOR, '/', $relative);
     }
 
     /**

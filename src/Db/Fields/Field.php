@@ -300,6 +300,47 @@ abstract class Field
         return ['class' => static::class, 'options' => $options];
     }
 
+    /**
+     * The field as a migration records it: deconstruct() without the
+     * options that only change PHP behaviour (see phpOnlyOptions()), and
+     * with the default as a plain value. Enum cases become their backing
+     * value and other objects their database value; a closure default is
+     * left out, because it only applies to new objects, never to the table.
+     *
+     * Two fields with the same result need no migration between them.
+     *
+     * @return array{class: class-string<Field>, options: array<string, mixed>}
+     */
+    public function deconstructForMigration(): array
+    {
+        $deconstructed = $this->deconstruct();
+        $options = array_diff_key($deconstructed['options'], array_flip($this->phpOnlyOptions()));
+        if (array_key_exists('default', $options)) {
+            $default = $options['default'];
+            if ($default instanceof \Closure) {
+                unset($options['default']);
+            } elseif ($default instanceof \BackedEnum) {
+                $options['default'] = $default->value;
+            } elseif (is_object($default)) {
+                $options['default'] = $this->toDb($default);
+            }
+        }
+
+        return ['class' => $deconstructed['class'], 'options' => $options];
+    }
+
+    /**
+     * Constructor options that only change PHP behaviour (validation,
+     * forms, the admin), never the table. Migrations leave them out, so
+     * changing them needs no migration.
+     *
+     * @return list<string>
+     */
+    protected function phpOnlyOptions(): array
+    {
+        return ['blank', 'choices', 'verboseName', 'helpText', 'editable', 'validators'];
+    }
+
     protected function attnameFor(string $name): string
     {
         return $name;

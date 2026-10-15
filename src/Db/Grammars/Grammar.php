@@ -159,6 +159,15 @@ abstract class Grammar
     }
 
     /**
+     * A query that returns a row when the table named by its one
+     * placeholder exists (in the current schema).
+     */
+    public function compileTableExists(): string
+    {
+        return 'SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = ?';
+    }
+
+    /**
      * Added after FOREIGN KEY constraints so related rows can be changed
      * in any order inside a transaction.
      */

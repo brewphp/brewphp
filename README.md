@@ -11,8 +11,9 @@ BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
 > and the `manage.php` command line. Version 0.2 adds the ORM: models,
 > fields, relations, QuerySets and a schema editor for SQLite, MySQL and
 > PostgreSQL. Version 0.3 adds the Django-like template language, compiled
-> to PHP, with inheritance, auto-escaping and custom tags and filters. See
-> the [roadmap](#roadmap).
+> to PHP, with inheritance, auto-escaping and custom tags and filters.
+> Version 0.4 adds migrations (`makemigrations`, `migrate`) and `startapp`.
+> See the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -96,8 +97,11 @@ return render('blog/post_list.html', ['posts' => $posts]);
 ```
 
 ```bash
-php manage.php routes   # list every URL pattern
-php manage.php check    # look for configuration problems
+php manage.php startapp blog   # create apps/blog/
+php manage.php makemigrations  # write migrations for model changes
+php manage.php migrate         # apply them
+php manage.php routes          # list every URL pattern
+php manage.php check           # look for configuration problems
 ```
 
 ## Documentation
@@ -111,7 +115,7 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 | 0.1 | Router, views, request/response, settings, CLI | Done |
 | 0.2 | ORM (SQLite, MySQL, PostgreSQL) | Done |
 | 0.3 | Templates | Done |
-| 0.4 | Migrations, `startapp` | Planned |
+| 0.4 | Migrations, `startapp` | Done |
 | 0.5 | Auth, sessions, CSRF, forms | Planned |
 | 0.6 | Automatic admin | Planned |
 

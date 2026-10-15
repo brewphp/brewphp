@@ -24,7 +24,7 @@ use BrewPHP\Templates\Templates;
  */
 class Application extends Container
 {
-    public const VERSION = '0.1.0-dev';
+    public const VERSION = '0.4.0-dev';
 
     private static ?self $instance = null;
 

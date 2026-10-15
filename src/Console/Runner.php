@@ -29,8 +29,13 @@ final class Runner
         Commands\CheckCommand::class,
         Commands\KeyGenerateCommand::class,
         Commands\MakeCommandCommand::class,
+        Commands\MakeMigrationsCommand::class,
+        Commands\MigrateCommand::class,
         Commands\RoutesCommand::class,
         Commands\ServeCommand::class,
+        Commands\ShowMigrationsCommand::class,
+        Commands\SqlMigrateCommand::class,
+        Commands\StartAppCommand::class,
     ];
 
     /** @var array<string, Command> */
@@ -232,7 +237,10 @@ final class Runner
             $usage .= ' [options]';
         }
         foreach ($command->arguments() as $name => $argument) {
-            $usage .= $argument['required'] ? " <$name>" : " [<$name>]";
+            $usage .= match (true) {
+                $argument['array'] => $argument['required'] ? " <$name>..." : " [<$name>...]",
+                default => $argument['required'] ? " <$name>" : " [<$name>]",
+            };
         }
 
         $output->writeln($output->style('Description:', 'yellow'));
@@ -248,7 +256,7 @@ final class Runner
             $output->writeln();
             $output->writeln($output->style('Arguments:', 'yellow'));
             foreach ($command->arguments() as $name => $argument) {
-                $default = $argument['default'] !== null ? $output->style(' [default: ' . self::export($argument['default']) . ']', 'yellow') : '';
+                $default = $argument['default'] !== null && $argument['default'] !== [] ? $output->style(' [default: ' . self::export($argument['default']) . ']', 'yellow') : '';
                 $output->writeln('  ' . $output->style(str_pad($name, 24), 'green') . $argument['description'] . $default);
             }
         }

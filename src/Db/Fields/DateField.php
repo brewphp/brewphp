@@ -72,4 +72,9 @@ class DateField extends Field
     {
         return $value->setTime(0, 0);
     }
+
+    protected function phpOnlyOptions(): array
+    {
+        return [...parent::phpOnlyOptions(), 'autoNow', 'autoNowAdd'];
+    }
 }

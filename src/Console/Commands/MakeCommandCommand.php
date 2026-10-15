@@ -91,13 +91,4 @@ final class MakeCommandCommand extends Command
 
         return $chosen;
     }
-
-    private function relative(string $path): string
-    {
-        $base = $this->app->basePath() . DIRECTORY_SEPARATOR;
-
-        $relative = str_starts_with($path, $base) ? substr($path, strlen($base)) : $path;
-
-        return str_replace(DIRECTORY_SEPARATOR, '/', $relative);
-    }
 }

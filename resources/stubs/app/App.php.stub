@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use BrewPHP\Core\AppConfig;
+
+/**
+ * Configuration of the "{{ label }}" app (installed as '{{ label }}' in INSTALLED_APPS).
+ */
+final class App extends AppConfig
+{
+    public string $verboseName = '{{ verbose_name }}';
+}

@@ -36,6 +36,11 @@ class SqliteGrammar extends Grammar
         return is_bool($value) ? ($value ? '1' : '0') : parent::literal($value);
     }
 
+    public function compileTableExists(): string
+    {
+        return "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?";
+    }
+
     public function compileLimit(?int $limit, int $offset): string
     {
         // SQLite needs a LIMIT before OFFSET; -1 means "no limit".

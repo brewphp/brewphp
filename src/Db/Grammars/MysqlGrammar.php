@@ -70,6 +70,11 @@ class MysqlGrammar extends Grammar
         return $columns === [] ? 'INSERT INTO ' . $this->quoteIdentifier($table) . ' () VALUES ()' : parent::compileInsert($table, $columns);
     }
 
+    public function compileTableExists(): string
+    {
+        return 'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?';
+    }
+
     public function supportsDdlTransactions(): bool
     {
         return false;

@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * URLs of the "{{ label }}" app. Include them from config/urls.php:
+ *
+ *     path('{{ label }}/', include_urls('apps/{{ label }}/urls.php', namespace: '{{ label }}')),
+ */
+
+use function {{ namespace }}\index;
+
+return [
+    path('', index(...), name: 'index'),
+];

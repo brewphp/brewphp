@@ -12,10 +12,12 @@ use BrewPHP\Db\Fields\ForeignKey;
 use BrewPHP\Db\Fields\IntegerField;
 use BrewPHP\Db\Fields\TextField;
 use BrewPHP\Db\Index;
+use BrewPHP\Db\IntegrityError;
 use BrewPHP\Db\ModelMeta;
 use BrewPHP\Tests\DbTestCase;
 use BrewPHP\Tests\Fixtures\Models\Author;
 use BrewPHP\Tests\Fixtures\Models\Category;
+use BrewPHP\Tests\Fixtures\Models\Item;
 use BrewPHP\Tests\Fixtures\Models\Post;
 
 final class SchemaEditorTest extends DbTestCase
@@ -114,8 +116,13 @@ final class SchemaEditorTest extends DbTestCase
         self::assertSame(1, Post::objects()->filter(author__name: 'Ann')->count());
     }
 
-    public function testAddingANonNullableFieldWithoutDefaultFails(): void
+    public function testAddingANonNullableFieldWithoutDefaultFailsWhenTheTableHasRows(): void
     {
+        // An empty table accepts it, like on other databases.
+        $this->db()->schemaEditor()->addField(Item::class, self::attached(Item::class, 'code', new CharField(unique: true)));
+        self::assertContains('code', $this->columns(Item::meta()->table));
+
+        $this->post('Hello', $this->author());
         $this->expectException(FieldError::class);
         $this->expectExceptionMessage('without a default');
         $this->db()->schemaEditor()->addField(Post::class, self::attached(Post::class, 'code', new CharField(unique: true)));
@@ -150,7 +157,8 @@ final class SchemaEditorTest extends DbTestCase
         $this->db()->schemaEditor()->alterField(Post::class, Post::meta()->field('rating'), self::attached(Post::class, 'rating', new IntegerField(default: 0)));
         self::assertSame(0, $this->db()->scalar('SELECT rating FROM blog_post'));
 
-        $this->expectException(FieldError::class);
+        // Without a default, it fails only because a row really is NULL.
+        $this->expectException(IntegrityError::class);
         $this->db()->schemaEditor()->alterField(Post::class, Post::meta()->field('published_at'), self::attached(Post::class, 'published_at', new IntegerField()));
     }
 

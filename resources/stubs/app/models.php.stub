@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use BrewPHP\Db\Fields;
+use BrewPHP\Db\Model;
+
+/*
+ * Models of the "{{ label }}" app. After changing them, run:
+ *
+ *     php manage.php makemigrations {{ label }}
+ *     php manage.php migrate
+ *
+ * Example:
+ *
+ * final class Entry extends Model
+ * {
+ *     public static function fields(): array
+ *     {
+ *         return [
+ *             'title' => new Fields\CharField(maxLength: 200),
+ *             'created_at' => new Fields\DateTimeField(autoNowAdd: true),
+ *         ];
+ *     }
+ * }
+ */

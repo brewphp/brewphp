@@ -31,6 +31,7 @@ final class SqliteSchemaEditor extends SchemaEditor
     public function addField(string|ModelMeta $model, Field $field): void
     {
         $meta = self::metaOf($model);
+        self::assertAttached($field);
         $hasStaticDefault = $field->hasDefault() && !$field->default instanceof \Closure;
         // ALTER TABLE ADD COLUMN cannot add a UNIQUE or PRIMARY KEY column.
         if (!$field->unique && !$field->primaryKey && ($field->null || $hasStaticDefault) && !($field instanceof ForeignKey && !$field->null)) {
@@ -47,7 +48,9 @@ final class SqliteSchemaEditor extends SchemaEditor
             return;
         }
 
-        if (!$field->null && !$hasStaticDefault) {
+        // An empty table can get a NOT NULL column without a default, like on other databases.
+        $isEmpty = !$this->isCollectOnly() && $this->connection->selectOne('SELECT 1 FROM ' . $this->grammar->quoteIdentifier($meta->table) . ' LIMIT 1') === null;
+        if (!$field->null && !$hasStaticDefault && !$isEmpty) {
             throw new FieldError(sprintf(
                 'Cannot add the non-nullable field "%s" to %s without a default: existing rows need a value. Give it a default or null: true.',
                 $field->name,
@@ -56,7 +59,7 @@ final class SqliteSchemaEditor extends SchemaEditor
         }
         $fields = self::without($meta->fields, $field->name) + [$field->name => $field];
         $mapping = $this->identityMapping($fields);
-        $mapping[$field->column] = $this->grammar->literal($field->toDb($field->default));
+        $mapping[$field->column] = $hasStaticDefault ? $this->grammar->literal($field->toDb($field->default)) : 'NULL';
         $this->rebuild($meta, $fields, $mapping);
     }
 
@@ -94,10 +97,8 @@ final class SqliteSchemaEditor extends SchemaEditor
 
         $mapping = $this->identityMapping($fields);
         $source = $this->grammar->quoteIdentifier($old->column);
-        if ($old->null && !$new->null) {
-            if (!$new->hasDefault() || $new->default instanceof \Closure) {
-                throw new FieldError(sprintf('Making "%s" non-nullable needs a default for the rows where it is NULL.', $new->name));
-            }
+        // Without a default, copying fails only if a row really is NULL (like SET NOT NULL elsewhere).
+        if ($old->null && !$new->null && $new->hasDefault() && !$new->default instanceof \Closure) {
             $source = sprintf('COALESCE(%s, %s)', $source, $this->grammar->literal($new->toDb($new->default)));
         }
         $mapping[$new->column] = $source;

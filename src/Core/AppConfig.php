@@ -50,6 +50,16 @@ class AppConfig
     {
     }
 
+    /**
+     * Called for every installed app after `migrate` has run successfully
+     * (even when there was nothing to apply), like Django's `post_migrate`
+     * signal. Override it to create rows the app needs, such as default
+     * permissions; the tables of every applied migration exist by then.
+     */
+    public function migrated(Application $app): void
+    {
+    }
+
     public function templatesPath(): string
     {
         return $this->path . DIRECTORY_SEPARATOR . 'templates';
@@ -67,5 +77,14 @@ class AppConfig
     public function commandsPath(): string
     {
         return $this->path . DIRECTORY_SEPARATOR . 'Commands';
+    }
+
+    /**
+     * The folder of the app's migration files (`migrations/0001_initial.php`...).
+     * Built-in apps keep theirs inside the framework, next to their AppConfig.
+     */
+    public function migrationsPath(): string
+    {
+        return $this->path . DIRECTORY_SEPARATOR . 'migrations';
     }
 }

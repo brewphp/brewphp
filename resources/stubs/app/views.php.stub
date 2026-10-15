@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use BrewPHP\Http\Request;
+use BrewPHP\Http\Response;
+
+function index(Request $request): Response
+{
+    return render('{{ label }}/index.html', ['title' => '{{ verbose_name }}']);
+}
