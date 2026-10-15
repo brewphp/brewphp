@@ -201,7 +201,8 @@ final class ChangeList
                 $options[] = ['label' => $label, 'params' => [$name . '__gte' => $from->format('Y-m-d'), $name . '__lt' => $to->format('Y-m-d')]];
             }
         } else {
-            $values = $this->admin->model::objects()->orderBy($name)->distinct()->limit(200)->valuesList($name, flat: true);
+            // Only values of rows this user may see.
+            $values = $this->admin->getQueryset($this->request)->orderBy($name)->distinct()->limit(200)->valuesList($name, flat: true);
             foreach ($values as $value) {
                 if (is_scalar($value) && $value !== '') {
                     $options[] = ['label' => (string) $value, 'params' => [$name . '__exact' => (string) $value]];

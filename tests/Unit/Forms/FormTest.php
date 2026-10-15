@@ -191,6 +191,19 @@ final class FormTest extends TestCase
         self::assertTrue($form->isMultipart());
     }
 
+    public function testWidgetAttributesAreKeptWhenTheFieldHasNoLimit(): void
+    {
+        $form = new class () extends Form {
+            public function fields(): array
+            {
+                return ['code' => new Fields\CharField(widget: new Widgets\TextInput(['maxlength' => 5, 'class' => 'code']))];
+            }
+        };
+
+        self::assertStringContainsString('maxlength="5"', (string) $form->code);
+        self::assertStringContainsString('class="code"', (string) $form->code);
+    }
+
     public function testHtmlAttributesAreChecked(): void
     {
         self::assertSame(' a="&quot;&gt;" b', Html::attributes(['a' => '">', 'b' => true, 'c' => false, 'd' => null]));

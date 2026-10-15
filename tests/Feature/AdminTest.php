@@ -74,6 +74,9 @@ final class AdminTest extends AuthTestCase
 
         $this->user('visitor', 'visitor password 1');
         $this->client->get('/admin/login/');
+        // A wrong password and a right one for a non-staff account read the same.
+        $wrong = $this->post('/admin/login/', ['username' => 'visitor', 'password' => 'wrong password']);
+        self::assertStringContainsString('Please enter the correct username and password for a staff account.', $wrong->content());
         $response = $this->post('/admin/login/', ['username' => 'visitor', 'password' => 'visitor password 1']);
         self::assertSame(200, $response->status());
         self::assertStringContainsString('Please enter the correct username and password for a staff account.', $response->content());
@@ -194,13 +197,13 @@ final class AdminTest extends AuthTestCase
         $page = $this->client->get('/admin/demo/note/')->content();
         self::assertStringContainsString('3 notes', $page);
         self::assertStringContainsString('By tag', $page);
-        self::assertStringContainsString('black', $page);
-        self::assertStringNotContainsString('latte', $page, 'Two notes per page.');
-        self::assertStringContainsString('latte', $this->client->get('/admin/demo/note/?p=2')->content());
+        self::assertStringContainsString('change/">black<', $page);
+        self::assertStringNotContainsString('change/">latte<', $page, 'Two notes per page.');
+        self::assertStringContainsString('change/">latte<', $this->client->get('/admin/demo/note/?p=2')->content());
 
         $filtered = $this->client->get('/admin/demo/note/?tag__exact=' . $coffee->pk)->content();
-        self::assertStringContainsString('latte', $filtered);
-        self::assertStringNotContainsString('green', $filtered);
+        self::assertStringContainsString('change/">latte<', $filtered);
+        self::assertStringNotContainsString('change/">green<', $filtered);
 
         $search = $this->client->get('/admin/demo/note/?q=tea')->content();
         self::assertStringContainsString('2 results', $search);
@@ -246,12 +249,31 @@ final class AdminTest extends AuthTestCase
         $public = Note::create(['text' => 'public note']);
         $secret = Note::create(['text' => 'secret plans']);
 
-        self::assertStringNotContainsString('secret plans', $this->client->get('/admin/demo/note/')->content());
+        $list = $this->client->get('/admin/demo/note/')->content();
+        self::assertStringNotContainsString('secret plans', $list, 'Neither in the rows nor in the "By text" filter.');
+        self::assertStringContainsString('By text', $list);
         self::assertSame(404, $this->client->get('/admin/demo/note/' . $secret->pk . '/change/')->status());
         self::assertSame(404, $this->post('/admin/demo/note/' . $secret->pk . '/delete/')->status());
 
         $this->post('/admin/demo/note/', ['action' => 'delete_selected', '_selected_action' => [(string) $public->pk, (string) $secret->pk], 'post' => 'yes']);
         self::assertSame(['secret plans'], Note::objects()->valuesList('text', flat: true));
+    }
+
+    public function testDeletePermissionAloneDoesNotShowTheList(): void
+    {
+        $this->client->login($this->staff('demo.delete_tag'));
+        Tag::create(['slug' => 'tea']);
+
+        self::assertSame(403, $this->client->get('/admin/demo/tag/')->status());
+        self::assertStringNotContainsString('href="/admin/demo/tag/"', $this->client->get('/admin/')->content());
+    }
+
+    public function testAdminPagesCannotBeFramed(): void
+    {
+        $this->app->settings()->set('MIDDLEWARE', array_values(array_diff($this->app->settings()->array('MIDDLEWARE'), [\BrewPHP\Middleware\SecurityHeadersMiddleware::class])));
+        $this->client->login($this->superuser());
+
+        self::assertSame('DENY', $this->client->get('/admin/')->getHeader('X-Frame-Options'));
     }
 
     public function testDeletingRelatedObjectsNeedsTheirPermission(): void

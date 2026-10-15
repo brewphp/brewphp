@@ -172,7 +172,8 @@ final class Input
      */
     public function readSecret(): ?string
     {
-        $isTty = function_exists('stream_isatty') && stream_isatty($this->stream);
+        // A pipe with buffered data makes stream_isatty() warn; it is not a terminal either way.
+        $isTty = function_exists('stream_isatty') && @stream_isatty($this->stream);
         if ($isTty && DIRECTORY_SEPARATOR === '/') {
             shell_exec('stty -echo');
             try {

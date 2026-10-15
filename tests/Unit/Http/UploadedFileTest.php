@@ -23,6 +23,9 @@ final class UploadedFileTest extends TestCase
         self::assertSame('plain text', $file->content());
         self::assertSame('text/plain', $file->mimeType());
         self::assertMatchesRegularExpression('/^[a-f0-9]{32}\.txt$/', $file->hashName());
+        foreach (['shell.php', 'x.PHTML', 'a.php5', 'b.phar'] as $name) {
+            self::assertMatchesRegularExpression('/^[a-f0-9]{32}$/', UploadedFile::fake($source, $name)->hashName(), $name);
+        }
 
         $target = $file->moveTo($dir . '/media/notes', '../escape.txt');
         self::assertSame($dir . '/media/notes' . DIRECTORY_SEPARATOR . 'escape.txt', $target);

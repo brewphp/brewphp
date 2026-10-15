@@ -272,7 +272,7 @@ final class AdminSite
             return $redirect;
         }
         $admin = $this->modelAdmin($app_label, $model_name);
-        if (!$admin->hasViewPermission($request) && !$admin->hasDeletePermission($request)) {
+        if (!$admin->hasViewPermission($request)) {
             throw new PermissionDenied('You do not have permission to view this list.');
         }
         $meta = $admin->meta();
@@ -287,7 +287,6 @@ final class AdminSite
         }
 
         $list = new ChangeList($admin, $request);
-        $canChange = $admin->hasChangePermission($request) || $admin->hasViewPermission($request);
         $links = $admin->listDisplayLinks !== [] ? $admin->listDisplayLinks : [$admin->listDisplay[0] ?? '__str__'];
         $columns = [];
         foreach ($admin->listDisplay as $name) {
@@ -305,7 +304,7 @@ final class AdminSite
             foreach ($admin->listDisplay as $name) {
                 $cells[] = [
                     'value' => $admin->display($object, $name),
-                    'url' => $canChange && in_array($name, $links, true) ? $this->objectUrl('change', $admin, $object) : null,
+                    'url' => in_array($name, $links, true) ? $this->objectUrl('change', $admin, $object) : null,
                 ];
             }
             $rows[] = ['pk' => (string) $object->pk, 'cells' => $cells];
@@ -528,6 +527,22 @@ final class AdminSite
         }
         // Only objects the user can reach through the ModelAdmin's QuerySet.
         $queryset = $admin->getQueryset($request)->filter(pk__in: $ids);
+        // And only those the per-object permission allows.
+        $allowed = [];
+        foreach ($queryset as $object) {
+            $permitted = $action === 'delete_selected'
+                ? $admin->hasDeletePermission($request, $object)
+                : $admin->hasChangePermission($request, $object);
+            if ($permitted) {
+                $allowed[] = $object->pk;
+            }
+        }
+        if ($allowed === []) {
+            Messages::warning($request, 'You do not have permission to do that to the selected items. No items have been changed.');
+
+            return null;
+        }
+        $queryset = $admin->getQueryset($request)->filter(pk__in: $allowed);
 
         if ($action === 'delete_selected') {
             return $this->deleteSelected($request, $admin, $queryset);
@@ -654,6 +669,11 @@ final class AdminSite
             ...$context,
         ], $request));
 
+        // Never framed, even without SecurityHeadersMiddleware (clickjacking).
+        if (!$response->hasHeader('X-Frame-Options')) {
+            $response->header('X-Frame-Options', 'DENY');
+        }
+
         return $response->header('Cache-Control', 'no-cache, no-store, must-revalidate, private');
     }
 
@@ -689,7 +709,7 @@ final class AdminSite
             $apps[$meta->appLabel] ??= ['label' => $meta->appLabel, 'name' => $config->verboseName, 'url' => reverse('admin:app_list', [$meta->appLabel]), 'models' => []];
             $apps[$meta->appLabel]['models'][] = [
                 'name' => ucfirst($meta->verboseNamePlural),
-                'url' => $admin->hasViewPermission($request) || $admin->hasDeletePermission($request) ? $this->changelistUrl($admin) : null,
+                'url' => $admin->hasViewPermission($request) ? $this->changelistUrl($admin) : null,
                 'add_url' => $admin->hasAddPermission($request) ? reverse('admin:add', [$meta->appLabel, strtolower($meta->modelName)]) : null,
             ];
         }

@@ -29,9 +29,10 @@ final class Redirects
         if (!is_string($url)) {
             return false;
         }
-        $url = trim($url);
-        // Control characters and backslashes are read differently by browsers ("/\evil.com").
-        if ($url === '' || preg_match('/[\x00-\x1F\x7F\\\\]/', $url) === 1 || str_starts_with($url, '///')) {
+        // Callers redirect to the value as given, so it is checked as given:
+        // no surrounding spaces, control characters (CR/LF would break the
+        // Location header) or backslashes (browsers read "/\evil.com" as "//evil.com").
+        if ($url === '' || trim($url) !== $url || preg_match('/[\x00-\x1F\x7F\\\\]/', $url) === 1 || str_starts_with($url, '///')) {
             return false;
         }
         $parts = parse_url($url);

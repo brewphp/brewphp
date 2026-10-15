@@ -95,6 +95,7 @@ abstract class Widget
      */
     protected function buildAttrs(array $extra): array
     {
-        return array_replace($this->attrs, $extra);
+        // A null from the field (no maxLength, say) never removes an attribute set on the widget.
+        return array_replace($this->attrs, array_filter($extra, static fn (mixed $value): bool => $value !== null));
     }
 }

@@ -101,11 +101,16 @@ final class UploadedFile
     }
 
     /**
-     * A random file name that keeps the extension, safe to store.
+     * A random file name that keeps the extension, safe to store. Extensions
+     * a web server could run (php, phtml, phar, cgi...) are dropped.
      */
     public function hashName(): string
     {
-        $extension = preg_replace('/[^a-z0-9]/', '', $this->clientExtension());
+        $extension = (string) preg_replace('/[^a-z0-9]/', '', strtolower($this->clientExtension()));
+        // Never keep an extension a web server might execute.
+        if (preg_match('/^(php\d*|phtml|pht|phar|phps|inc|cgi|pl|py|rb|sh|asp|aspx|jsp|exe|shtml|htaccess)$/', $extension) === 1) {
+            $extension = '';
+        }
 
         return bin2hex(random_bytes(16)) . ($extension !== '' ? '.' . $extension : '');
     }

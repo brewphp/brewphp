@@ -45,6 +45,13 @@ final class SecurityTest extends TestCase
         $signed = $signer->signWithTime('ann', now: 1000);
 
         self::assertSame('ann', $signer->unsignWithTime($signed, 60, now: 1050));
+        try {
+            $signer->unsignWithTime($signer->signWithTime('ann', now: 5000), 60, now: 1000);
+            self::fail('A timestamp from the future was accepted.');
+        } catch (SignatureExpired) {
+            self::fail('Wrong exception.');
+        } catch (BadSignature) {
+        }
         $this->expectException(SignatureExpired::class);
         $signer->unsignWithTime($signed, 60, now: 1061);
     }
@@ -80,6 +87,8 @@ final class SecurityTest extends TestCase
         yield 'user info' => ['http://localhost@evil.example/', false];
         yield 'missing host' => ['http:/evil.example', false];
         yield 'empty' => ['', false];
+        yield 'trailing CRLF' => ["/admin/\r\n", false];
+        yield 'surrounding spaces' => [' /admin/', false];
     }
 
     #[DataProvider('redirectProvider')]

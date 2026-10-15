@@ -130,6 +130,30 @@ project follows [Semantic Versioning](https://semver.org/).
   `connection()` and `isCollectOnly()` are public;
   `Field::deconstructForMigration()`.
 
+### Security
+
+- **Login throttling (v0.6):** an attempt is counted before the password is
+  checked, in one locked step, so parallel requests cannot exceed
+  `AUTH_LOGIN_ATTEMPTS`; spelling variants of a username that the database
+  treats as equal share one counter.
+- **Admin (v0.6):** the "all values" filter only lists values of rows from
+  `getQueryset()`; the change list needs view (or change) permission; the
+  admin login gives the same error for a wrong password and a non-staff
+  account; bulk actions check the per-object permission of every selected
+  object; admin pages send `X-Frame-Options: DENY` even without
+  SecurityHeadersMiddleware.
+- **Redirects (v0.6):** `Redirects::isSafe()` refuses URLs with surrounding
+  spaces or line breaks (a crafted `next` could make login fail).
+- **Uploads (v0.6):** `UploadedFile::hashName()` drops extensions a web
+  server could execute (php, phtml, phar, cgi...).
+- **Signing (v0.6):** timestamped signatures from the future are refused.
+
+### Fixed
+
+- **CLI (v0.6):** password prompts work with piped input.
+- **Forms (v0.6):** a field without a limit no longer removes `maxlength`,
+  `min` or `max` set on its widget.
+
 ### Changed
 
 - **Migrations (v0.5):** generated files use `return new class () extends Migration {`

@@ -56,20 +56,20 @@ class AuthenticationForm extends Form
         $settings = Application::getInstance()->settings();
         $maxAttempts = (int) $settings->get('AUTH_LOGIN_ATTEMPTS', 5);
         $limiter = RateLimiter::make();
-        $key = 'login|' . (function_exists('mb_strtolower') ? mb_strtolower($username) : strtolower($username)) . '|' . ($this->request?->ip() ?? '');
-        if ($maxAttempts > 0 && $limiter->tooManyAttempts($key, $maxAttempts)) {
-            throw new ValidationError(sprintf(
-                'Too many failed login attempts. Try again in %d minute(s).',
-                max(1, (int) ceil($limiter->availableIn($key) / 60)),
-            ), 'too_many_attempts');
+        $key = 'login|' . self::throttleName($username) . '|' . ($this->request?->ip() ?? '');
+        if ($maxAttempts > 0) {
+            // Count the attempt before checking the password, in one locked step,
+            // so parallel requests cannot all slip in before a failure is counted.
+            if ($limiter->hit($key, (int) $settings->get('AUTH_LOGIN_LOCKOUT', 900)) > $maxAttempts) {
+                throw new ValidationError(sprintf(
+                    'Too many failed login attempts. Try again in %d minute(s).',
+                    max(1, (int) ceil($limiter->availableIn($key) / 60)),
+                ), 'too_many_attempts');
+            }
         }
 
         $this->user = Auth::authenticate($this->request, ['username' => $username, 'password' => $password]);
         if ($this->user === null) {
-            if ($maxAttempts > 0) {
-                $limiter->hit($key, (int) $settings->get('AUTH_LOGIN_LOCKOUT', 900));
-            }
-
             throw new ValidationError(
                 'Please enter a correct username and password. Note that both fields may be case-sensitive.',
                 'invalid_login',
@@ -78,6 +78,19 @@ class AuthenticationForm extends Form
         $limiter->clear($key);
 
         return $data;
+    }
+
+    /**
+     * The name the throttle counts attempts under: the stored username when
+     * one matches (the database may match "Ánn" to "ann"), so spelling
+     * variants of one account share a single counter.
+     */
+    private static function throttleName(string $username): string
+    {
+        $stored = User::objects()->filter(username: $username)->valuesList('username', flat: true)[0] ?? $username;
+        $name = is_string($stored) ? $stored : $username;
+
+        return function_exists('mb_strtolower') ? mb_strtolower($name) : strtolower($name);
     }
 
     /**

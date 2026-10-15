@@ -38,7 +38,7 @@ final class NoteAdmin extends ModelAdmin
 {
     public array $listDisplay = ['text', 'tag'];
 
-    public array $listFilter = ['tag'];
+    public array $listFilter = ['tag', 'text'];
 
     public array $searchFields = ['text', 'tag__slug'];
 

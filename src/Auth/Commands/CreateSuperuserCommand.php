@@ -64,7 +64,7 @@ final class CreateSuperuserCommand extends Command
 
         $email = $this->option('email');
         if (!is_string($email)) {
-            $email = $interactive ? (string) $this->ask('Email address', '') : '';
+            $email = $interactive ? (string) $this->ask('Email address (optional)') : '';
         }
         if ($email !== '' && filter_var(trim($email), FILTER_VALIDATE_EMAIL) === false) {
             $this->error('Enter a valid email address.');

@@ -92,6 +92,9 @@ final class Signer
         }
         $timestamp = (int) base_convert(substr($value, $position + 1), 36, 10);
         $age = ($now ?? time()) - $timestamp;
+        if ($age < -60) {
+            throw new BadSignature('Signature timestamp is in the future.');
+        }
         if ($age > $maxAge) {
             throw new SignatureExpired(sprintf('Signature age %d > %d seconds.', $age, $maxAge));
         }

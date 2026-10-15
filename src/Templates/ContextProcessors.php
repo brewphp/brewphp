@@ -29,8 +29,10 @@ final class ContextProcessors
 
     /**
      * Adds `user` (the logged-in User or an AnonymousUser) and `perms`
-     * (`{% if perms.blog.add_post %}`). Needs AuthenticationMiddleware;
-     * the user is only loaded when a template uses it.
+     * (`{% if perms.blog.add_post %}`). Needs AuthenticationMiddleware.
+     * The user is loaded for every template rendered with the request (so
+     * those responses vary on the session cookie); permissions are only
+     * loaded when a template checks one.
      *
      * @return array{user: Authenticatable, perms: PermWrapper}|array{}
      */
