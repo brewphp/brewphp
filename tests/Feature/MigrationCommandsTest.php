@@ -102,6 +102,34 @@ final class MigrationCommandsTest extends TestCase
         self::assertStringContainsString('return [];', $source);
     }
 
+    public function testConflictsAreMerged(): void
+    {
+        $this->manage(['makemigrations']);
+        $this->manage(['makemigrations', 'demo', '--empty', '--name=a']);
+        // A teammate wrote another 0002 on their branch.
+        copy($this->migrationFile('0002_a'), $this->migrationFile('0002_b'));
+
+        [$code, $out] = $this->manage(['migrate']);
+        self::assertSame(1, $code);
+        self::assertStringContainsString('Conflicting migrations in app "demo": demo.0002_a and demo.0002_b. Run "php manage.php makemigrations --merge"', $out);
+        self::assertSame(1, $this->manage(['makemigrations'])[0]);
+
+        [$code, $out] = $this->manage(['makemigrations', '--merge']);
+        self::assertSame(0, $code, $out);
+        self::assertStringContainsString('- Merge demo.0002_a, demo.0002_b', $out);
+        $source = (string) file_get_contents($this->migrationFile('0003_merge_0002_a_0002_b'));
+        self::assertStringContainsString("'demo.0002_a',\n        'demo.0002_b',", $source);
+        self::assertSame([0, 'No conflicts detected to merge.' . PHP_EOL], $this->manage(['makemigrations', '--merge']));
+
+        [$code, $out] = $this->manage(['migrate']);
+        self::assertSame(0, $code, $out);
+        self::assertStringContainsString('Applying demo.0003_merge_0002_a_0002_b... OK', $out);
+
+        // Going backwards, the plan lists operations in the order they are undone.
+        [, $out] = $this->manage(['migrate', 'demo', 'zero', '--plan']);
+        self::assertMatchesRegularExpression('/demo\.0001_initial \(unapply\)\s+Undo create model Note\s+Undo create model Tag/', $out);
+    }
+
     public function testUsageErrors(): void
     {
         [$code, $out] = $this->manage(['makemigrations', 'nope']);

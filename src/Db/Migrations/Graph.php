@@ -164,7 +164,7 @@ final class Graph
         $leaves = $this->leaves($app);
         if (count($leaves) > 1) {
             throw new MigrationError(sprintf(
-                'Conflicting migrations in app "%s": %s. Edit one so it depends on the other.',
+                'Conflicting migrations in app "%s": %s. Run "php manage.php makemigrations --merge" to merge them.',
                 $app,
                 implode(' and ', $leaves),
             ));

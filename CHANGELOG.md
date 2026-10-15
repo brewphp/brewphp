@@ -25,9 +25,10 @@ project follows [Semantic Versioning](https://semver.org/).
   through `var_export()`. Migrations record only what changes the database:
   options such as `helpText`, `choices` or `onDelete` need no migration.
 - **Migration commands (v0.4):** `makemigrations` (apps, `--name`,
-  `--empty`, `--dry-run`, `--check` for CI), `migrate` (app, target
-  migration or `zero`, `--fake`, `--plan`, `--database`, and a warning
-  for model changes without migrations), `showmigrations` (`--plan`) and
+  `--empty`, `--dry-run`, `--check` for CI, `--merge` for conflicting
+  migrations), `migrate` (app, target migration or `zero`, `--fake`,
+  `--plan`, `--database`, a refusal while migrations conflict, and a
+  warning for model changes without migrations), `showmigrations` (`--plan`) and
   `sqlmigrate` (`--backwards`). Migrations are never written into the
   framework or a Composer package.
 - **`startapp` (v0.4):** creates `apps/<label>/` with `App.php`,

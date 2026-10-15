@@ -50,6 +50,15 @@ final class MigrateCommand extends Command
 
         try {
             $executor = $migrator->executor();
+            foreach ($migrator->conflicts() as $label => $leaves) {
+                $this->error(sprintf(
+                    'Conflicting migrations in app "%s": %s. Run "php manage.php makemigrations --merge" to merge them.',
+                    $label,
+                    implode(' and ', $leaves),
+                ));
+
+                return self::FAILURE;
+            }
             $executor->checkConsistentHistory();
             $plan = $executor->plan(is_string($app) ? $app : null, is_string($target) ? $target : null);
         } catch (MigrationError $e) {
@@ -66,7 +75,8 @@ final class MigrateCommand extends Command
             foreach ($plan as [$key, $backwards]) {
                 $migration = $executor->graph()->node($key);
                 $this->line($migration->key() . ($backwards ? ' (unapply)' : ''));
-                foreach ($migration->operations() as $operation) {
+                $operations = $migration->operations();
+                foreach ($backwards ? array_reverse($operations) : $operations as $operation) {
                     $this->line('    ' . ($backwards ? 'Undo ' . lcfirst($operation->describe()) : $operation->describe()));
                 }
             }
@@ -113,7 +123,8 @@ final class MigrateCommand extends Command
         try {
             $apps = array_keys($migrator->changes());
         } catch (MigrationError) {
-            $apps = ['?'];
+            // Detecting changes needs answers (or has its own errors): makemigrations reports them.
+            return;
         }
         if ($apps !== []) {
             $this->warn(sprintf(

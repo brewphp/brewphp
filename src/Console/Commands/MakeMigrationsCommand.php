@@ -32,6 +32,7 @@ final class MakeMigrationsCommand extends Command
         $this->addOption('empty', 'Write an empty migration to fill in by hand (needs an app)');
         $this->addOption('dry-run', 'Show what would be written, write nothing');
         $this->addOption('check', 'Write nothing; exit with 1 when models have changes without migrations');
+        $this->addOption('merge', 'Write merge migrations for apps with conflicting migrations');
     }
 
     public function handle(): int
@@ -49,7 +50,21 @@ final class MakeMigrationsCommand extends Command
         $migrator = new Migrator($this->app);
 
         try {
-            if ($this->option('empty')) {
+            if ($this->option('merge')) {
+                $conflicts = $migrator->conflicts();
+                if ($apps !== []) {
+                    $conflicts = array_intersect_key($conflicts, array_flip($apps));
+                }
+                if ($conflicts === []) {
+                    $this->info('No conflicts detected to merge.');
+
+                    return self::SUCCESS;
+                }
+                $prepared = [];
+                foreach (array_keys($conflicts) as $label) {
+                    $prepared[$label] = $migrator->prepareMerge($label);
+                }
+            } elseif ($this->option('empty')) {
                 if ($apps === []) {
                     $this->error('--empty needs the app to write the migration in, e.g. "makemigrations blog --empty".');
 
@@ -91,6 +106,9 @@ final class MakeMigrationsCommand extends Command
             $this->line('  ' . $this->relative($migration['path']));
             foreach ($migration['operations'] as $operation) {
                 $this->line('    - ' . $operation->describe());
+            }
+            if ($this->option('merge')) {
+                $this->line('    - Merge ' . implode(', ', $migrator->graph()->leaves($label)));
             }
         }
         if ($this->option('check')) {

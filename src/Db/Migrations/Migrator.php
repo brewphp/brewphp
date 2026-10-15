@@ -122,6 +122,47 @@ final class Migrator
     }
 
     /**
+     * Apps with more than one latest migration, and those migrations.
+     *
+     * @return array<string, list<string>>
+     */
+    public function conflicts(): array
+    {
+        $conflicts = [];
+        foreach ($this->graph()->apps() as $label) {
+            $leaves = $this->graph()->leaves($label);
+            if (count($leaves) > 1) {
+                $conflicts[$label] = $leaves;
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
+     * A migration with no operations that depends on every latest
+     * migration of an app, which ends a conflict (like Django's merge
+     * migrations). Not written yet.
+     *
+     * @return array{name: string, path: string, operations: list<Operation>, source: string}
+     */
+    public function prepareMerge(string $label): array
+    {
+        $leaves = $this->graph()->leaves($label);
+        $config = $this->app->apps()->get($label);
+        $names = array_map(static fn (string $key): string => explode('.', $key, 2)[1], $leaves);
+        $suffix = 'merge_' . implode('_', $names);
+        $name = sprintf('%04d_%s', Loader::nextNumber($config), strlen($suffix) > 52 ? 'merge_' . date('Ymd_Hi') : $suffix);
+
+        return [
+            'name' => $name,
+            'path' => $config->migrationsPath() . DIRECTORY_SEPARATOR . $name . '.php',
+            'operations' => [],
+            'source' => (new Writer())->write([], $leaves),
+        ];
+    }
+
+    /**
      * Whether migrations of this app can be written: only apps inside the
      * project, never the framework's or a Composer package's.
      */
