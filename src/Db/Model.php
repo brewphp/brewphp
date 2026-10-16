@@ -134,6 +134,16 @@ abstract class Model implements \JsonSerializable
     }
 
     /**
+     * Forget the cached metadata of every model (see Registry::clearCache()).
+     *
+     * @internal
+     */
+    public static function clearMetaCache(): void
+    {
+        self::$metas = [];
+    }
+
+    /**
      * The metadata built from the methods above (cached per class).
      */
     public static function meta(): ModelMeta

@@ -39,6 +39,17 @@ final class RegistryTest extends TestCase
         self::assertSame(['php'], Tag::objects()->filter(notes__text: 'Hello')->valuesList('slug', flat: true));
     }
 
+    public function testMetadataFollowsTheCurrentApplication(): void
+    {
+        $this->makeApp(['INSTALLED_APPS' => ['demo']]);
+        self::assertNotSame('sessions', \BrewPHP\Sessions\Models\StoredSession::meta()->appLabel);
+
+        // Another application installs the app: the cached metadata is not reused.
+        $this->makeApp(['INSTALLED_APPS' => ['demo', 'brewphp.sessions']]);
+        self::assertSame('sessions', \BrewPHP\Sessions\Models\StoredSession::meta()->appLabel);
+        self::assertContains(\BrewPHP\Sessions\Models\StoredSession::class, Registry::models('sessions'));
+    }
+
     public function testAbstractModelsAreNotRegistered(): void
     {
         class_exists(Author::class);

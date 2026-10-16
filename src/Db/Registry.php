@@ -28,6 +28,21 @@ final class Registry
     private static array $reverse = [];
 
     /**
+     * Forget everything cached about models (their metadata included).
+     * Called when another Application becomes the current one, because a
+     * model's app label depends on the installed apps.
+     *
+     * @internal
+     */
+    public static function clearCache(): void
+    {
+        self::$models = [];
+        self::$declaredCount = -1;
+        self::$reverse = [];
+        Model::clearMetaCache();
+    }
+
+    /**
      * The model classes, optionally only those of one app.
      *
      * @return list<class-string<Model>>

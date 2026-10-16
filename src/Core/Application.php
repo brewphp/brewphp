@@ -93,6 +93,10 @@ class Application extends Container
 
     public static function setInstance(?self $app): void
     {
+        if ($app !== self::$instance) {
+            // Model metadata (app labels, reverse relations) depends on the installed apps.
+            \BrewPHP\Db\Registry::clearCache();
+        }
         self::$instance = $app;
     }
 
