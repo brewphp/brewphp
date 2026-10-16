@@ -6,8 +6,22 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-16
+
+The first stable release. It brings together the whole roadmap: routing,
+views and middleware (0.1), the ORM for SQLite, MySQL/MariaDB and PostgreSQL
+(0.2), the template language (0.3), migrations and `startapp` (0.4),
+sessions, CSRF protection, authentication and forms (0.5) and the automatic
+admin (0.6). The entries below say which milestone each part came from.
+From now on, the public API follows semantic versioning: no breaking change
+before 2.0.
+
 ### Added
 
+- **CI (1.0):** GitHub Actions run code style, PHPStan and the test suite on
+  PHP 8.2, 8.3 and 8.4 with SQLite, MySQL and PostgreSQL, and the live tests
+  on MariaDB; new live tests cover migrations, the built-in apps and
+  database sessions on real servers.
 - **Admin (v0.6):** the `brewphp.admin` app, an automatic admin like
   Django's: `AdminSite` (`AdminSite::default()->urls()` under the `admin`
   namespace) with a dashboard, app pages, change lists, add/change/delete
@@ -150,6 +164,10 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Database (1.0):** model metadata is rebuilt when another Application
+  becomes the current one, so a model first seen without its app no longer
+  keeps the wrong app label (and makemigrations no longer proposes to
+  delete it).
 - **CLI (v0.6):** password prompts work with piped input.
 - **Forms (v0.6):** a field without a limit no longer removes `maxlength`,
   `min` or `max` set on its widget.
@@ -308,3 +326,6 @@ project follows [Semantic Versioning](https://semver.org/).
   `key:generate` and `make:command` (with overridable stubs).
 - Welcome page shown while `DEBUG` is on and no routes exist, styled with
   Plus Jakarta Sans and the BrewPHP coffee palette (light and dark).
+
+[Unreleased]: https://github.com/brewphp/brewphp/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/brewphp/brewphp/releases/tag/v1.0.0

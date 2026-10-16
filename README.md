@@ -1,21 +1,24 @@
 # BrewPHP
 
+[![CI](https://github.com/brewphp/brewphp/actions/workflows/ci.yml/badge.svg)](https://github.com/brewphp/brewphp/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/packagist/v/brewphp/brewphp?color=6F4E37)](https://packagist.org/packages/brewphp/brewphp)
+[![PHP 8.2+](https://img.shields.io/badge/php-8.2%2B-777BB4)](https://www.php.net/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-C8A27A)](LICENSE)
+
 A small, Django-inspired PHP framework: easy to learn, a readable core, and
 zero runtime dependencies.
 
 BrewPHP brings Django's ideas (apps, URLconfs, views, an ORM, templates,
 `manage.php`, migrations, auth and forms, and an automatic admin) to modern PHP 8.2+.
 
-> **Status:** early development. Version 0.1 provides the foundation:
-> routing, views, requests and responses, settings, middleware, error pages
-> and the `manage.php` command line. Version 0.2 adds the ORM: models,
-> fields, relations, QuerySets and a schema editor for SQLite, MySQL and
-> PostgreSQL. Version 0.3 adds the Django-like template language, compiled
-> to PHP, with inheritance, auto-escaping and custom tags and filters.
-> Version 0.4 adds migrations (`makemigrations`, `migrate`) and `startapp`.
-> Version 0.5 adds sessions, CSRF protection, users and permissions,
-> login views and forms. Version 0.6 adds the automatic admin.
-> See the [roadmap](#roadmap).
+> **Status:** stable. BrewPHP 1.0 includes routing, views and middleware;
+> an ORM for SQLite, MySQL/MariaDB and PostgreSQL; a Django-like template
+> language; migrations; sessions, CSRF protection, users, permissions and
+> forms; and an automatic admin. It follows semantic versioning: no
+> breaking changes before 2.0. See the [changelog](CHANGELOG.md).
+
+Add it to an existing project with `composer require brewphp/brewphp`, or
+start a new one from the skeleton below.
 
 ## Quick start
 
@@ -124,7 +127,7 @@ php manage.php check           # look for configuration problems
 
 Everything is documented at **<https://docs.brewphp.dev>**.
 
-## Roadmap
+## Releases
 
 | Version | Scope | Status |
 |---|---|---|
@@ -134,6 +137,10 @@ Everything is documented at **<https://docs.brewphp.dev>**.
 | 0.4 | Migrations, `startapp` | Done |
 | 0.5 | Auth, sessions, CSRF, forms | Done |
 | 0.6 | Automatic admin | Done |
+| **1.0** | **First stable release** | **Released** |
+
+Ideas for 1.x (without breaking changes): many-to-many fields, a custom user
+model setting, password reset by email, and admin inlines.
 
 ## Contributing
 
