@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Code style and static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer update --prefer-dist --no-progress
+      - run: composer validate --strict
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+  tests:
+    name: PHP ${{ matrix.php }}, SQLite, MySQL and PostgreSQL
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: brewphp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -uroot -psecret --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: brewphp_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      BREWPHP_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=brewphp_test;charset=utf8mb4
+      BREWPHP_TEST_MYSQL_USER: root
+      BREWPHP_TEST_MYSQL_PASSWORD: secret
+      BREWPHP_TEST_PGSQL_DSN: pgsql:host=127.0.0.1;port=5432;dbname=brewphp_test
+      BREWPHP_TEST_PGSQL_USER: postgres
+      BREWPHP_TEST_PGSQL_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite, pdo_mysql, pdo_pgsql
+          coverage: none
+      - run: composer update --prefer-dist --no-progress
+      - run: vendor/bin/phpunit --display-skipped
+
+  mariadb:
+    name: PHP 8.3, MariaDB
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: secret
+          MARIADB_DATABASE: brewphp_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    env:
+      BREWPHP_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=brewphp_test;charset=utf8mb4
+      BREWPHP_TEST_MYSQL_USER: root
+      BREWPHP_TEST_MYSQL_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, pdo_mysql
+          coverage: none
+      - run: composer update --prefer-dist --no-progress
+      - run: vendor/bin/phpunit --filter Live --display-skipped
